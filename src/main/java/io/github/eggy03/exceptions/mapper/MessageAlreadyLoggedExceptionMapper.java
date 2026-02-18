@@ -1,0 +1,40 @@
+package io.github.eggy03.exceptions.mapper;
+
+import io.github.eggy03.exceptions.MessageAlreadyLoggedException;
+import io.github.eggy03.exceptions.entity.ErrorResponse;
+import io.github.eggy03.util.AnsiColor;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
+import lombok.extern.slf4j.Slf4j;
+
+import java.time.LocalDateTime;
+
+@Provider
+@Slf4j
+public class MessageAlreadyLoggedExceptionMapper implements ExceptionMapper<MessageAlreadyLoggedException> {
+
+    @Context
+    UriInfo uriInfo;
+
+    @Override
+    public Response toResponse(MessageAlreadyLoggedException e) {
+
+        log.debug(AnsiColor.MAGENTA + "{}" + AnsiColor.RESET, e.getMessage(), e);
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                Response.Status.NOT_FOUND.getStatusCode(),
+                e.getClass().getSimpleName(),
+                e.getMessage(),
+                LocalDateTime.now(),
+                uriInfo.getPath()
+        );
+
+        return Response
+                .status(Response.Status.NOT_FOUND)
+                .entity(errorResponse)
+                .build();
+    }
+}
