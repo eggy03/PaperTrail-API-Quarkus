@@ -65,4 +65,12 @@ This endpoint simply returns 200 OK with a body and is intended for platforms or
 
 ---
 
+#### Internal
+
+Build native using
+
+```
+mvn clean package -Dnative "-Dquarkus.profile=prod" "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
+```
+
 
