@@ -55,7 +55,7 @@ Fork this repository to your GitHub account, connect it to your preferred cloud 
   
   ```
   docker build -t persistence-api .
-  docker run --env-file .env persistence-api
+  docker run -p 8081:8081 --env-file .env persistence-api
   ```
   
 #### Healthcheck Endpoint
