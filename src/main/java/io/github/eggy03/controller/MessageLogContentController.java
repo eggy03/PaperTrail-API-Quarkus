@@ -1,0 +1,59 @@
+package io.github.eggy03.controller;
+
+import io.github.eggy03.dto.MessageLogContentDTO;
+import io.github.eggy03.service.MessageLogContentService;
+import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import lombok.RequiredArgsConstructor;
+
+@Path("/api/v1/content/message")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@RunOnVirtualThread
+@RequiredArgsConstructor
+public class MessageLogContentController {
+
+    private final MessageLogContentService service;
+
+    @POST
+    public Response saveMessage (@Valid MessageLogContentDTO dto) {
+        return Response
+                .status(Response.Status.CREATED)
+                .entity(service.saveMessage(dto))
+                .build();
+    }
+
+    @GET
+    @Path("/{messageId}")
+    public Response getMessage (@PathParam("messageId") @Positive Long messageId) {
+        return Response
+                .ok(service.getMessage(messageId))
+                .build();
+    }
+
+    @PUT
+    public Response updateMessage (@Valid MessageLogContentDTO dto) {
+        return Response
+                .ok(service.updateMessage(dto))
+                .build();
+    }
+
+    @DELETE
+    @Path("/{messageId}")
+    public Response deleteMessage (@PathParam("messageId") @Positive Long messageId) {
+        service.deleteMessage(messageId);
+        return Response.noContent().build();
+    }
+
+}
