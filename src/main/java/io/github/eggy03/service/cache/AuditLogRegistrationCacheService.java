@@ -6,7 +6,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import lombok.NonNull;
 
 @ApplicationScoped
-public class AuditLogCacheService {
+public class AuditLogRegistrationCacheService {
 
     @CacheInvalidate(cacheName = "auditLog")
     public void invalidateCache (@NonNull @CacheKey Long guildId){

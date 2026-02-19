@@ -6,7 +6,7 @@ import io.github.eggy03.exceptions.GuildAlreadyRegisteredException;
 import io.github.eggy03.exceptions.GuildNotFoundException;
 import io.github.eggy03.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.repository.AuditLogRegistrationRepository;
-import io.github.eggy03.service.cache.AuditLogCacheService;
+import io.github.eggy03.service.cache.AuditLogRegistrationCacheService;
 import io.github.eggy03.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
@@ -26,7 +26,7 @@ public class AuditLogRegistrationService {
 
     private final AuditLogRegistrationRepository repository;
     private final AuditLogRegistrationMapper mapper;
-    private final AuditLogCacheService cacheService;
+    private final AuditLogRegistrationCacheService cacheService;
 
     @Transactional
     public @NotNull AuditLogRegistrationDTO registerGuild (@NonNull AuditLogRegistrationDTO dto) {
