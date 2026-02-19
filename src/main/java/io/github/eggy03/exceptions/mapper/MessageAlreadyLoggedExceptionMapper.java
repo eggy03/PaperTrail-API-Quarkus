@@ -25,7 +25,7 @@ public class MessageAlreadyLoggedExceptionMapper implements ExceptionMapper<Mess
         log.debug(AnsiColor.MAGENTA + "{}" + AnsiColor.RESET, e.getMessage(), e);
 
         ErrorResponse errorResponse = new ErrorResponse(
-                Response.Status.NOT_FOUND.getStatusCode(),
+                Response.Status.CONFLICT.getStatusCode(),
                 e.getClass().getSimpleName(),
                 e.getMessage(),
                 LocalDateTime.now(),
@@ -33,7 +33,7 @@ public class MessageAlreadyLoggedExceptionMapper implements ExceptionMapper<Mess
         );
 
         return Response
-                .status(Response.Status.NOT_FOUND)
+                .status(Response.Status.CONFLICT)
                 .entity(errorResponse)
                 .build();
     }
