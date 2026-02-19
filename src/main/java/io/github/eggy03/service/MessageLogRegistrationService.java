@@ -39,6 +39,7 @@ public class MessageLogRegistrationService {
         return dto;
     }
 
+    @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "messageLog")
     public @NotNull MessageLogRegistrationDTO viewRegisteredGuild (@NonNull @CacheKey Long guildId) {
 

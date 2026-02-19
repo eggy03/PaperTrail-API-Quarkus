@@ -39,6 +39,7 @@ public class AuditLogRegistrationService {
         return dto;
     }
 
+    @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "auditLog")
     public @NotNull AuditLogRegistrationDTO viewRegisteredGuild (@NonNull @CacheKey Long guildId) {
 
