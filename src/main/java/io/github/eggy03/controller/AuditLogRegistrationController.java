@@ -2,6 +2,7 @@ package io.github.eggy03.controller;
 
 import io.github.eggy03.dto.AuditLogRegistrationDTO;
 import io.github.eggy03.service.AuditLogRegistrationService;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @Path("api/v1/log/audit")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RunOnVirtualThread
 @RequiredArgsConstructor
 public class AuditLogRegistrationController {
 
