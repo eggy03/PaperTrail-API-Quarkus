@@ -1,0 +1,31 @@
+# ---------- Stage 1: Native Build ----------
+FROM ghcr.io/graalvm/native-image-community:25 AS build
+WORKDIR /native-build
+
+# Copy Maven wrapper
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Set execution permission for the Maven wrapper
+RUN chmod +x ./mvnw
+RUN ./mvnw dependency:go-offline
+
+# Copy the source files after dependencies are cached
+COPY src ./src
+
+# Build native binary
+RUN ./mvnw package -Dnative "-Dquarkus.profile=prod" "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
+
+
+# ---------- Stage 2: Minimal Runtime ----------
+FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
+WORKDIR /work/
+
+# Copy the compiled binary
+COPY --from=build /native-build/target/*-runner /work/application
+
+RUN chmod 775 /work/application
+
+ENTRYPOINT ["./application"]
+EXPOSE 8081
