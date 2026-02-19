@@ -26,13 +26,13 @@ The Persistence service relies on `Redis/Valkey` and any of the following `Datab
 
 You will need the following environment variables to run the service:
 
-| Variable       | Description                                              |
-| -------------- | -------------------------------------------------------- |
-| `DB_URL`       | JDBC connection string (vendor-specific)                 |
-| `DB_CLASSNAME` | JDBC driver class name (see below)                       |
-| `DB_USERNAME`  | Database username                                        |
-| `DB_PASSWORD`  | Database password                                        |
-| `REDIS_URL`    | Redis connection string (also supports Valkey)           |
+| Variable       | Description                                    |
+|----------------|------------------------------------------------|
+| `DB_URL`       | JDBC connection string (vendor-specific)       |
+| `DB_CLASSNAME` | JDBC driver class name (see below)             |
+| `DB_USERNAME`  | Database username                              |
+| `DB_PASSWORD`  | Database password                              |
+| `REDIS_URL`    | Redis connection string (also supports Valkey) |
 
 Supported JDBC Classnames
 
