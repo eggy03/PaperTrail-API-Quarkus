@@ -23,6 +23,7 @@
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <commons.lang3.version>3.20.0</commons.lang3.version>
         <lombok.version>1.18.42</lombok.version>
+        <redisson.quarkus.version>4.2.0</redisson.quarkus.version>
     </properties>
 
     <dependencyManagement>
@@ -68,15 +69,16 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-cache</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-redis-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-quarkus-30</artifactId>
+            <version>${redisson.quarkus.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

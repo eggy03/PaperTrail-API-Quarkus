@@ -2,6 +2,7 @@ package io.github.eggy03.controller;
 
 import io.github.eggy03.dto.MessageLogContentDTO;
 import io.github.eggy03.service.MessageLogContentService;
+import io.github.eggy03.service.locks.MessageLogContentLockingService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
@@ -24,13 +25,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageLogContentController {
 
-    private final MessageLogContentService service;
+    private final MessageLogContentLockingService lockingService; // accessing the MessageLogContentService behind Redisson locks
+    private final MessageLogContentService service; // direct access
 
     @POST
     public Response saveMessage (@Valid MessageLogContentDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
-                .entity(service.saveMessage(dto))
+                .entity(lockingService.saveMessage(dto))
                 .build();
     }
 
@@ -45,14 +47,14 @@ public class MessageLogContentController {
     @PUT
     public Response updateMessage (@Valid MessageLogContentDTO dto) {
         return Response
-                .ok(service.updateMessage(dto))
+                .ok(lockingService.updateMessage(dto))
                 .build();
     }
 
     @DELETE
     @Path("/{messageId}")
     public Response deleteMessage (@PathParam("messageId") @Positive Long messageId) {
-        service.deleteMessage(messageId);
+        lockingService.deleteMessage(messageId);
         return Response.noContent().build();
     }
 
