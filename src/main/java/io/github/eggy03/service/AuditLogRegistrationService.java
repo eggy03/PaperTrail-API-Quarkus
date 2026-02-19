@@ -6,13 +6,18 @@ import io.github.eggy03.exceptions.GuildAlreadyRegisteredException;
 import io.github.eggy03.exceptions.GuildNotFoundException;
 import io.github.eggy03.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.repository.AuditLogRegistrationRepository;
+import io.github.eggy03.service.cache.AuditLogCacheService;
 import io.github.eggy03.util.AnsiColor;
+import io.quarkus.cache.CacheInvalidate;
+import io.quarkus.cache.CacheKey;
+import io.quarkus.cache.CacheResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -21,10 +26,10 @@ public class AuditLogRegistrationService {
 
     private final AuditLogRegistrationRepository repository;
     private final AuditLogRegistrationMapper mapper;
+    private final AuditLogCacheService cacheService;
 
     @Transactional
-    @NotNull
-    public AuditLogRegistrationDTO registerGuild (@NonNull AuditLogRegistrationDTO dto) {
+    public @NotNull AuditLogRegistrationDTO registerGuild (@NonNull AuditLogRegistrationDTO dto) {
 
         if(repository.findById(dto.getGuildId())!=null)
             throw new GuildAlreadyRegisteredException("Guild is already registered for audit logging");
@@ -34,8 +39,8 @@ public class AuditLogRegistrationService {
         return dto;
     }
 
-    @NotNull
-    public AuditLogRegistrationDTO viewRegisteredGuild (@NonNull Long guildId) {
+    @CacheResult(cacheName = "auditLog")
+    public @NotNull AuditLogRegistrationDTO viewRegisteredGuild (@NonNull @CacheKey Long guildId) {
 
         AuditLogRegistration entity = repository
                 .findByIdOptional(guildId)
@@ -45,8 +50,7 @@ public class AuditLogRegistrationService {
     }
 
     @Transactional
-    @NotNull
-    public AuditLogRegistrationDTO updateRegisteredGuild (@NonNull AuditLogRegistrationDTO updatedDto) {
+    public @NotNull AuditLogRegistrationDTO updateRegisteredGuild (@NonNull AuditLogRegistrationDTO updatedDto) {
 
         // dirty checking
         AuditLogRegistration entity = repository
@@ -54,13 +58,15 @@ public class AuditLogRegistrationService {
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
 
         entity.setChannelId(updatedDto.getChannelId());
+        cacheService.invalidateCache(updatedDto.getGuildId());
 
         log.debug("{}Updated audit log guild with ID={}{}", AnsiColor.GREEN, updatedDto.getGuildId(), AnsiColor.RESET);
         return updatedDto;
     }
 
     @Transactional
-    public void deleteRegisteredGuild (@NonNull Long guildId) {
+    @CacheInvalidate(cacheName = "auditLog")
+    public void deleteRegisteredGuild (@NonNull @CacheKey Long guildId) {
 
         if(repository.findById(guildId)==null)
             throw new GuildNotFoundException("Guild is not registered for audit logging");
