@@ -5,6 +5,7 @@ import io.github.eggy03.papertrail.api.service.MessageLogContentService;
 import io.github.eggy03.papertrail.api.service.locks.MessageLogContentLockingService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -38,7 +39,7 @@ public class MessageLogContentController {
 
     @GET
     @Path("/{messageId}")
-    public Response getMessage (@PathParam("messageId") @Positive Long messageId) {
+    public Response getMessage(@PathParam("messageId") @Positive @NotNull Long messageId) {
         return Response
                 .ok(service.getMessage(messageId))
                 .build();
@@ -53,7 +54,7 @@ public class MessageLogContentController {
 
     @DELETE
     @Path("/{messageId}")
-    public Response deleteMessage (@PathParam("messageId") @Positive Long messageId) {
+    public Response deleteMessage(@PathParam("messageId") @Positive @NotNull Long messageId) {
         lockingService.deleteMessage(messageId);
         return Response.noContent().build();
     }

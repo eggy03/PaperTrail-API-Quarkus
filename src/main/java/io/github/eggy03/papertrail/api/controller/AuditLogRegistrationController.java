@@ -4,6 +4,7 @@ import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.service.AuditLogRegistrationService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -36,7 +37,7 @@ public class AuditLogRegistrationController {
 
     @GET
     @Path("/{guildId}")
-    public Response getGuild (@PathParam("guildId") @Positive Long guildId) {
+    public Response getGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         return Response
                 .ok(service.viewRegisteredGuild(guildId))
                 .build();
@@ -51,7 +52,7 @@ public class AuditLogRegistrationController {
 
     @DELETE
     @Path("/{guildId}")
-    public Response deleteGuild (@PathParam("guildId") @Positive Long guildId) {
+    public Response deleteGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         service.deleteRegisteredGuild(guildId);
         return Response.noContent().build();
     }
