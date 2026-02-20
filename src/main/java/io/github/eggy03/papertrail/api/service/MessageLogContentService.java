@@ -11,12 +11,15 @@ import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
 import io.quarkus.cache.CacheResult;
+import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.time.OffsetDateTime;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -77,5 +80,13 @@ public class MessageLogContentService {
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         else
             log.warn("{}Failed to delete message having ID={}{}", AnsiColor.YELLOW, messageId, AnsiColor.RESET);
+    }
+
+    @Scheduled(every = "24h")
+    @Transactional
+    public void cleanupMessages() {
+        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
+        long deletedMessageCount = repository.deleteOlderThan(cutoff);
+        log.info("{}Message Content Cleanup Service- Cleaned up {} messages older than {}{}", AnsiColor.GREEN, deletedMessageCount, cutoff, AnsiColor.RESET);
     }
 }

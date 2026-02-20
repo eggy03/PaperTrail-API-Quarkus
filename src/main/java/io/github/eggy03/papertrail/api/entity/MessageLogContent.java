@@ -3,6 +3,7 @@ package io.github.eggy03.papertrail.api.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.time.OffsetDateTime;
 @Setter
 @ToString
 @RequiredArgsConstructor
-@Table(name = "message_log_content_table", schema = "public")
+@Table(name = "message_log_content_table", schema = "public", indexes = {@Index(name = "idx_message_created_at", columnList = "created_at")})
 public class MessageLogContent {
 
     @Id
