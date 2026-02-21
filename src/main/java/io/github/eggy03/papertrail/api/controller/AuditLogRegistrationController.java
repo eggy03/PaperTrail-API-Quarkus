@@ -46,7 +46,7 @@ public class AuditLogRegistrationController {
     @PUT
     public Response updateGuild(@Valid AuditLogRegistrationDTO dto) {
         return Response
-                .ok(service.updateRegisteredGuild(dto))
+                .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
                 .build();
     }
 

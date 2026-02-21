@@ -6,7 +6,6 @@ import io.github.eggy03.papertrail.api.exceptions.MessageAlreadyLoggedException;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
-import io.github.eggy03.papertrail.api.service.cache.MessageLogContentCacheService;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
@@ -28,7 +27,6 @@ public class MessageLogContentService {
 
     private final MessageLogContentRepository repository;
     private final MessageLogContentMapper mapper;
-    private final MessageLogContentCacheService cacheService;
 
     @Transactional
     public @NotNull MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
@@ -53,19 +51,17 @@ public class MessageLogContentService {
     }
 
     @Transactional
-    public @NotNull MessageLogContentDTO updateMessage(@NonNull MessageLogContentDTO updatedDto) {
+    public @NotNull MessageLogContentDTO updateMessage(@NonNull Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // dirty checking
         MessageLogContent entity = repository
-                .findByIdOptional(updatedDto.getMessageId())
+                .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message to be updated was never saved"));
 
         entity.setMessageContent(updatedDto.getMessageContent());
         entity.setAuthorId(updatedDto.getAuthorId());
 
-        cacheService.invalidateCache(updatedDto.getMessageId());
-
-        log.debug("{}Updated message content having ID={}{}", AnsiColor.GREEN, updatedDto.getMessageId(), AnsiColor.RESET);
+        log.debug("{}Updated message content having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         return updatedDto;
     }
 

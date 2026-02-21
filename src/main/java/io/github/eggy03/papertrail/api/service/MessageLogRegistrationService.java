@@ -6,7 +6,6 @@ import io.github.eggy03.papertrail.api.exceptions.GuildAlreadyRegisteredExceptio
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogRegistrationRepository;
-import io.github.eggy03.papertrail.api.service.cache.MessageLogRegistrationCacheService;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
@@ -26,7 +25,6 @@ public class MessageLogRegistrationService {
 
     private final MessageLogRegistrationRepository repository;
     private final MessageLogRegistrationMapper mapper;
-    private final MessageLogRegistrationCacheService cacheService;
 
     @Transactional
     public @NotNull MessageLogRegistrationDTO registerGuild(@NonNull MessageLogRegistrationDTO dto) {
@@ -51,17 +49,17 @@ public class MessageLogRegistrationService {
     }
 
     @Transactional
-    public @NotNull MessageLogRegistrationDTO updateRegisteredGuild(@NonNull MessageLogRegistrationDTO updatedDto) {
+    @CacheInvalidate(cacheName = "messageLog")
+    public @NotNull MessageLogRegistrationDTO updateRegisteredGuild(@NonNull @CacheKey Long guildId, @NonNull MessageLogRegistrationDTO updatedDto) {
 
         // dirty checking
         MessageLogRegistration entity = repository
-                .findByIdOptional(updatedDto.getGuildId())
+                .findByIdOptional(guildId)
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
 
         entity.setChannelId(updatedDto.getChannelId());
-        cacheService.invalidateCache(updatedDto.getGuildId());
 
-        log.debug("{}Updated message log guild with ID={}{}", AnsiColor.GREEN, updatedDto.getGuildId(), AnsiColor.RESET);
+        log.debug("{}Updated message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         return updatedDto;
     }
 

@@ -46,7 +46,7 @@ public class MessageLogRegistrationController {
     @PUT
     public Response updateGuild(@Valid MessageLogRegistrationDTO dto) {
         return Response
-                .ok(service.updateRegisteredGuild(dto))
+                .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
                 .build();
     }
 

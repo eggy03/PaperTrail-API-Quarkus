@@ -56,7 +56,7 @@ public class MessageLogContentLockingService {
         log.debug("Acquired UPDATE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
 
         try {
-            return service.updateMessage(dto);
+            return service.updateMessage(dto.getMessageId(), dto);
         } finally {
             rlock.unlock();
             log.debug("Released UPDATE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
