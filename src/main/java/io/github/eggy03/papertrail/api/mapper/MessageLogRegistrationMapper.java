@@ -8,7 +8,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.CDI)
 public interface MessageLogRegistrationMapper {
 
-    MessageLogRegistration toEntity (MessageLogRegistrationDTO messageLogRegistrationDTO);
+    MessageLogRegistration toEntity(MessageLogRegistrationDTO messageLogRegistrationDTO);
 
-    MessageLogRegistrationDTO toDTO (MessageLogRegistration messageLogRegistration);
+    MessageLogRegistrationDTO toDTO(MessageLogRegistration messageLogRegistration);
 }

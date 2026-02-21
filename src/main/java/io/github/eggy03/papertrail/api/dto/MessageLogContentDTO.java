@@ -7,12 +7,12 @@ import lombok.Data;
 
 public class MessageLogContentDTO {
 
-    @NotNull (message = "MessageID cannot be null")
+    @NotNull(message = "MessageID cannot be null")
     private Long messageId;
 
-    @NotNull (message = "Message content cannot be null")
+    @NotNull(message = "Message content cannot be null")
     private String messageContent;
 
-    @NotNull (message = "AuthorID cannot be null")
+    @NotNull(message = "AuthorID cannot be null")
     private Long authorId;
 }

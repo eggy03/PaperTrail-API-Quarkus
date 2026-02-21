@@ -28,7 +28,7 @@ public class AuditLogRegistrationController {
     private final AuditLogRegistrationService service;
 
     @POST
-    public Response registerGuild (@Valid AuditLogRegistrationDTO dto) {
+    public Response registerGuild(@Valid AuditLogRegistrationDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(service.registerGuild(dto))
@@ -44,7 +44,7 @@ public class AuditLogRegistrationController {
     }
 
     @PUT
-    public Response updateGuild (@Valid AuditLogRegistrationDTO dto) {
+    public Response updateGuild(@Valid AuditLogRegistrationDTO dto) {
         return Response
                 .ok(service.updateRegisteredGuild(dto))
                 .build();

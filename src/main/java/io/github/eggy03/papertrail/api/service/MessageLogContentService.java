@@ -31,9 +31,9 @@ public class MessageLogContentService {
     private final MessageLogContentCacheService cacheService;
 
     @Transactional
-    public @NotNull MessageLogContentDTO saveMessage (@NonNull MessageLogContentDTO dto) {
+    public @NotNull MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
 
-        if(repository.findById(dto.getMessageId())!=null)
+        if (repository.findById(dto.getMessageId()) != null)
             throw new MessageAlreadyLoggedException("Message has already been saved");
 
         repository.persistAndFlush(mapper.toEntity(dto));
@@ -47,13 +47,13 @@ public class MessageLogContentService {
 
         MessageLogContent entity = repository
                 .findByIdOptional(messageId)
-                .orElseThrow(()-> new MessageNotFoundException("Message hasn't been saved yet"));
+                .orElseThrow(() -> new MessageNotFoundException("Message hasn't been saved yet"));
 
         return mapper.toDTO(entity);
     }
 
     @Transactional
-    public @NotNull MessageLogContentDTO updateMessage (@NonNull MessageLogContentDTO updatedDto) {
+    public @NotNull MessageLogContentDTO updateMessage(@NonNull MessageLogContentDTO updatedDto) {
 
         // dirty checking
         MessageLogContent entity = repository
@@ -71,12 +71,12 @@ public class MessageLogContentService {
 
     @Transactional
     @CacheInvalidate(cacheName = "messageContent")
-    public void deleteMessage (@NonNull @CacheKey Long messageId) {
+    public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
-        if(repository.findById(messageId)==null)
+        if (repository.findById(messageId) == null)
             throw new MessageNotFoundException("Message to be deleted was never saved");
 
-        if(repository.deleteById(messageId))
+        if (repository.deleteById(messageId))
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         else
             log.warn("{}Failed to delete message having ID={}{}", AnsiColor.YELLOW, messageId, AnsiColor.RESET);

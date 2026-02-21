@@ -21,7 +21,7 @@ public class MessageLogRegistration {
     @Column(name = "guild_id")
     private Long guildId;
 
-    @Column (name = "channel_id", unique = true, nullable = false)
+    @Column(name = "channel_id", unique = true, nullable = false)
     private Long channelId;
 
 }

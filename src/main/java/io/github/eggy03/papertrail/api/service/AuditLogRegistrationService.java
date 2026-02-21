@@ -29,9 +29,9 @@ public class AuditLogRegistrationService {
     private final AuditLogRegistrationCacheService cacheService;
 
     @Transactional
-    public @NotNull AuditLogRegistrationDTO registerGuild (@NonNull AuditLogRegistrationDTO dto) {
+    public @NotNull AuditLogRegistrationDTO registerGuild(@NonNull AuditLogRegistrationDTO dto) {
 
-        if(repository.findById(dto.getGuildId())!=null)
+        if (repository.findById(dto.getGuildId()) != null)
             throw new GuildAlreadyRegisteredException("Guild is already registered for audit logging");
 
         repository.persistAndFlush(mapper.toEntity(dto));
@@ -41,17 +41,17 @@ public class AuditLogRegistrationService {
 
     @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "auditLog")
-    public @NotNull AuditLogRegistrationDTO viewRegisteredGuild (@NonNull @CacheKey Long guildId) {
+    public @NotNull AuditLogRegistrationDTO viewRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         AuditLogRegistration entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(()-> new GuildNotFoundException("Guild is not registered for audit logging"));
+                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
 
         return mapper.toDTO(entity);
     }
 
     @Transactional
-    public @NotNull AuditLogRegistrationDTO updateRegisteredGuild (@NonNull AuditLogRegistrationDTO updatedDto) {
+    public @NotNull AuditLogRegistrationDTO updateRegisteredGuild(@NonNull AuditLogRegistrationDTO updatedDto) {
 
         // dirty checking
         AuditLogRegistration entity = repository
@@ -67,12 +67,12 @@ public class AuditLogRegistrationService {
 
     @Transactional
     @CacheInvalidate(cacheName = "auditLog")
-    public void deleteRegisteredGuild (@NonNull @CacheKey Long guildId) {
+    public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
-        if(repository.findById(guildId)==null)
+        if (repository.findById(guildId) == null)
             throw new GuildNotFoundException("Guild is not registered for audit logging");
 
-        if(repository.deleteById(guildId))
+        if (repository.deleteById(guildId))
             log.debug("{} Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         else
             log.warn("{}Failed to delete audit log guild with ID={}{}", AnsiColor.YELLOW, guildId, AnsiColor.RESET);

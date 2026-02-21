@@ -8,7 +8,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.CDI)
 public interface AuditLogRegistrationMapper {
 
-    AuditLogRegistration toEntity (AuditLogRegistrationDTO auditLogRegistrationDTO);
+    AuditLogRegistration toEntity(AuditLogRegistrationDTO auditLogRegistrationDTO);
 
-    AuditLogRegistrationDTO toDTO (AuditLogRegistration auditLogRegistration);
+    AuditLogRegistrationDTO toDTO(AuditLogRegistration auditLogRegistration);
 }

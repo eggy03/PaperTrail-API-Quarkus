@@ -14,14 +14,14 @@ import lombok.ToString;
 @Setter
 @ToString
 @RequiredArgsConstructor
-@Table (name = "audit_log_table", schema = "public")
+@Table(name = "audit_log_table", schema = "public")
 public class AuditLogRegistration {
 
     @Id
-    @Column (name = "guild_id")
+    @Column(name = "guild_id")
     private Long guildId;
 
-    @Column (name = "channel_id", unique = true, nullable = false)
+    @Column(name = "channel_id", unique = true, nullable = false)
     private Long channelId;
 
 }

@@ -34,7 +34,7 @@ public class MessageLogContentLockingService {
     private final MessageLogContentService service;
 
     @NotNull
-    public MessageLogContentDTO saveMessage (@NonNull MessageLogContentDTO dto) {
+    public MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
 
         RLock rlock = redissonClient.getFairLock(dto.getMessageId().toString());
         rlock.lock();
@@ -49,7 +49,7 @@ public class MessageLogContentLockingService {
     }
 
     @NotNull
-    public MessageLogContentDTO updateMessage (@NonNull MessageLogContentDTO dto) {
+    public MessageLogContentDTO updateMessage(@NonNull MessageLogContentDTO dto) {
 
         RLock rlock = redissonClient.getFairLock(dto.getMessageId().toString());
         rlock.lock();
@@ -63,7 +63,7 @@ public class MessageLogContentLockingService {
         }
     }
 
-    public void deleteMessage (@NonNull Long messageId) {
+    public void deleteMessage(@NonNull Long messageId) {
 
         RLock rlock = redissonClient.getFairLock(String.valueOf(messageId));
         rlock.lock();

@@ -29,9 +29,9 @@ public class MessageLogRegistrationService {
     private final MessageLogRegistrationCacheService cacheService;
 
     @Transactional
-    public @NotNull MessageLogRegistrationDTO registerGuild (@NonNull MessageLogRegistrationDTO dto) {
+    public @NotNull MessageLogRegistrationDTO registerGuild(@NonNull MessageLogRegistrationDTO dto) {
 
-        if(repository.findById(dto.getGuildId())!=null)
+        if (repository.findById(dto.getGuildId()) != null)
             throw new GuildAlreadyRegisteredException("Guild is already registered for message logging");
 
         repository.persistAndFlush(mapper.toEntity(dto));
@@ -41,17 +41,17 @@ public class MessageLogRegistrationService {
 
     @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "messageLog")
-    public @NotNull MessageLogRegistrationDTO viewRegisteredGuild (@NonNull @CacheKey Long guildId) {
+    public @NotNull MessageLogRegistrationDTO viewRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         MessageLogRegistration entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(()-> new GuildNotFoundException("Guild is not registered for message logging"));
+                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for message logging"));
 
         return mapper.toDTO(entity);
     }
 
     @Transactional
-    public @NotNull MessageLogRegistrationDTO updateRegisteredGuild (@NonNull MessageLogRegistrationDTO updatedDto) {
+    public @NotNull MessageLogRegistrationDTO updateRegisteredGuild(@NonNull MessageLogRegistrationDTO updatedDto) {
 
         // dirty checking
         MessageLogRegistration entity = repository
@@ -67,12 +67,12 @@ public class MessageLogRegistrationService {
 
     @Transactional
     @CacheInvalidate(cacheName = "messageLog")
-    public void deleteRegisteredGuild (@NonNull @CacheKey Long guildId) {
+    public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
-        if(repository.findById(guildId)==null)
+        if (repository.findById(guildId) == null)
             throw new GuildNotFoundException("Guild is not registered for message logging");
 
-        if(repository.deleteById(guildId))
+        if (repository.deleteById(guildId))
             log.debug("{} Deleted message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         else
             log.warn("{}Failed to delete message log guild with ID={}{}", AnsiColor.YELLOW, guildId, AnsiColor.RESET);

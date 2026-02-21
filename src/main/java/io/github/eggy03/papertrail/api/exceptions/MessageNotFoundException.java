@@ -3,5 +3,5 @@ package io.github.eggy03.papertrail.api.exceptions;
 import lombok.experimental.StandardException;
 
 @StandardException
-public class MessageNotFoundException extends RuntimeException{
+public class MessageNotFoundException extends RuntimeException {
 }

@@ -8,7 +8,7 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.CDI)
 public interface MessageLogContentMapper {
 
-    MessageLogContent toEntity (MessageLogContentDTO messageLogContentDTO);
+    MessageLogContent toEntity(MessageLogContentDTO messageLogContentDTO);
 
-    MessageLogContentDTO toDTO (MessageLogContent messageLogContent);
+    MessageLogContentDTO toDTO(MessageLogContent messageLogContent);
 }

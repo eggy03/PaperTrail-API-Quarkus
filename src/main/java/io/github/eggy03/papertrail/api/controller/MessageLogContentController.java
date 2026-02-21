@@ -30,7 +30,7 @@ public class MessageLogContentController {
     private final MessageLogContentService service; // direct access
 
     @POST
-    public Response saveMessage (@Valid MessageLogContentDTO dto) {
+    public Response saveMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(lockingService.saveMessage(dto))
@@ -46,7 +46,7 @@ public class MessageLogContentController {
     }
 
     @PUT
-    public Response updateMessage (@Valid MessageLogContentDTO dto) {
+    public Response updateMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .ok(lockingService.updateMessage(dto))
                 .build();
