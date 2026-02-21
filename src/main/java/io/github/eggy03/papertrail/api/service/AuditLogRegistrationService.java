@@ -74,7 +74,7 @@ public class AuditLogRegistrationService {
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
 
         if (repository.deleteById(guildId))
-            log.debug("{} Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
+            log.debug("{}Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         else
             log.warn("{}Failed to delete audit log guild with ID={}{}", AnsiColor.YELLOW, guildId, AnsiColor.RESET);
     }
