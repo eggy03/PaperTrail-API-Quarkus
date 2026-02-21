@@ -69,8 +69,8 @@ public class MessageLogRegistrationService {
     @CacheInvalidate(cacheName = "messageLog")
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
-        if (repository.findById(guildId) == null)
-            throw new GuildNotFoundException("Guild is not registered for message logging");
+        repository.findByIdOptional(guildId)
+                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for message logging"));
 
         if (repository.deleteById(guildId))
             log.debug("{} Deleted message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);

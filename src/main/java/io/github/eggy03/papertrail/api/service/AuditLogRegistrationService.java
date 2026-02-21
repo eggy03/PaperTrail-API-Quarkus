@@ -69,8 +69,9 @@ public class AuditLogRegistrationService {
     @CacheInvalidate(cacheName = "auditLog")
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
-        if (repository.findById(guildId) == null)
-            throw new GuildNotFoundException("Guild is not registered for audit logging");
+        repository
+                .findByIdOptional(guildId)
+                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
 
         if (repository.deleteById(guildId))
             log.debug("{} Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);

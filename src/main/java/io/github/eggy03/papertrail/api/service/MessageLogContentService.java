@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -56,7 +57,8 @@ public class MessageLogContentService {
     }
 
     @Transactional
-    public @NotNull MessageLogContentDTO updateMessage(@NonNull Long messageId, @NonNull MessageLogContentDTO updatedDto) {
+    @CacheInvalidate(cacheName = "messageContent")
+    public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // dirty checking
         MessageLogContent entity = repository
@@ -74,8 +76,9 @@ public class MessageLogContentService {
     @CacheInvalidate(cacheName = "messageContent")
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
-        if (repository.findById(messageId) == null)
-            throw new MessageNotFoundException("Message to be deleted was never saved");
+        repository
+                .findByIdOptional(messageId)
+                .orElseThrow(() -> new MessageNotFoundException("Message to be deleted was never saved"));
 
         if (repository.deleteById(messageId))
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
@@ -86,7 +89,7 @@ public class MessageLogContentService {
     @Scheduled(every = "24h")
     @Transactional
     public void cleanupMessages() {
-        OffsetDateTime cutoff = OffsetDateTime.now().minusDays(30);
+        OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
         long deletedMessageCount = repository.deleteOlderThan(cutoff);
         log.info("{}Message Content Cleanup Service- Cleaned up {} messages older than {}{}", AnsiColor.GREEN, deletedMessageCount, cutoff, AnsiColor.RESET);
     }
