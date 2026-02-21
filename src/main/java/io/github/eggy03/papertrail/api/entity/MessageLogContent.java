@@ -25,7 +25,7 @@ public class MessageLogContent {
     @Column(name = "message_id")
     private Long messageId;
 
-    @Column(name = "message_content", length = 6000, nullable = false)
+    @Column(name = "message_content", length = 4000, nullable = false)
     private String messageContent;
 
     @Column(name = "author_id", nullable = false)
