@@ -1,6 +1,6 @@
 package io.github.eggy03.papertrail.api.exceptions.mapper;
 
-import io.github.eggy03.papertrail.api.exceptions.GuildAlreadyRegisteredException;
+import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationException;
 import io.github.eggy03.papertrail.api.exceptions.entity.ErrorResponse;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import jakarta.ws.rs.core.Context;
@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 
 @Provider
 @Slf4j
-public class GuildAlreadyRegisteredExceptionMapper implements ExceptionMapper<GuildAlreadyRegisteredException> {
+public class GuildRegistrationExceptionMapper implements ExceptionMapper<GuildRegistrationException> {
 
     @Context
     UriInfo uriInfo;
 
     @Override
-    public Response toResponse(GuildAlreadyRegisteredException e) {
+    public Response toResponse(GuildRegistrationException e) {
 
         log.debug(AnsiColor.MAGENTA + "{}" + AnsiColor.RESET, e.getMessage(), e);
 

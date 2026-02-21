@@ -2,7 +2,7 @@ package io.github.eggy03.papertrail.api.service;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
 import io.github.eggy03.papertrail.api.entity.MessageLogContent;
-import io.github.eggy03.papertrail.api.exceptions.MessageAlreadyLoggedException;
+import io.github.eggy03.papertrail.api.exceptions.MessageContentException;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
@@ -17,6 +17,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.OffsetDateTime;
 
@@ -31,12 +32,16 @@ public class MessageLogContentService {
     @Transactional
     public @NotNull MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
 
-        if (repository.findById(dto.getMessageId()) != null)
-            throw new MessageAlreadyLoggedException("Message has already been saved");
-
-        repository.persistAndFlush(mapper.toEntity(dto));
-        log.debug("{}Saved message with ID={}{}", AnsiColor.GREEN, dto.getMessageId(), AnsiColor.RESET);
-        return dto;
+        try {
+            repository.persistAndFlush(mapper.toEntity(dto));
+            log.debug("{}Saved message with ID={}{}", AnsiColor.GREEN, dto.getMessageId(), AnsiColor.RESET);
+            return dto;
+        } catch (ConstraintViolationException e) {// from hibernate
+            throw new MessageContentException(e);
+        }
+        // API Note: While ConstraintViolationException covers for a lot of constraints other than PK constraint
+        // We have already covered them during dto validation phase in the controller
+        // So realistically, only PK/UK constraint issues will be propagated from here
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)

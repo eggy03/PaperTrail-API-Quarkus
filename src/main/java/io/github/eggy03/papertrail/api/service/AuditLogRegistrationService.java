@@ -2,8 +2,8 @@ package io.github.eggy03.papertrail.api.service;
 
 import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.entity.AuditLogRegistration;
-import io.github.eggy03.papertrail.api.exceptions.GuildAlreadyRegisteredException;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
+import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationException;
 import io.github.eggy03.papertrail.api.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.AuditLogRegistrationRepository;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
@@ -16,6 +16,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.exception.ConstraintViolationException;
 
 
 @ApplicationScoped
@@ -29,12 +30,13 @@ public class AuditLogRegistrationService {
     @Transactional
     public @NotNull AuditLogRegistrationDTO registerGuild(@NonNull AuditLogRegistrationDTO dto) {
 
-        if (repository.findById(dto.getGuildId()) != null)
-            throw new GuildAlreadyRegisteredException("Guild is already registered for audit logging");
-
-        repository.persistAndFlush(mapper.toEntity(dto));
-        log.debug("{}Saved audit log guild with ID={}{}", AnsiColor.GREEN, dto.getGuildId(), AnsiColor.RESET);
-        return dto;
+        try {
+            repository.persistAndFlush(mapper.toEntity(dto));
+            log.debug("{}Saved audit log guild with ID={}{}", AnsiColor.GREEN, dto.getGuildId(), AnsiColor.RESET);
+            return dto;
+        } catch (ConstraintViolationException e) { // from hibernate
+            throw new GuildRegistrationException(e);
+        }
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)

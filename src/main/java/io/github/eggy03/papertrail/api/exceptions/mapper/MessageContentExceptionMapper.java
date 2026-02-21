@@ -1,6 +1,6 @@
 package io.github.eggy03.papertrail.api.exceptions.mapper;
 
-import io.github.eggy03.papertrail.api.exceptions.MessageAlreadyLoggedException;
+import io.github.eggy03.papertrail.api.exceptions.MessageContentException;
 import io.github.eggy03.papertrail.api.exceptions.entity.ErrorResponse;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import jakarta.ws.rs.core.Context;
@@ -14,13 +14,13 @@ import java.time.LocalDateTime;
 
 @Provider
 @Slf4j
-public class MessageAlreadyLoggedExceptionMapper implements ExceptionMapper<MessageAlreadyLoggedException> {
+public class MessageContentExceptionMapper implements ExceptionMapper<MessageContentException> {
 
     @Context
     UriInfo uriInfo;
 
     @Override
-    public Response toResponse(MessageAlreadyLoggedException e) {
+    public Response toResponse(MessageContentException e) {
 
         log.debug(AnsiColor.MAGENTA + "{}" + AnsiColor.RESET, e.getMessage(), e);
 
