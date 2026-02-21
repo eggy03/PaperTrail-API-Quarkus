@@ -85,6 +85,10 @@
             <artifactId>quarkus-redis-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-health</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson-quarkus-30</artifactId>
             <version>${redisson.quarkus.version}</version>
