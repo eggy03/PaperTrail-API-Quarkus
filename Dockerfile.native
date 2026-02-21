@@ -15,7 +15,8 @@ RUN ./mvnw dependency:go-offline
 COPY src ./src
 
 # Build native binary
-RUN ./mvnw package -Dnative "-Dquarkus.profile=prod" "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
+# quarkus defaults to prod
+RUN ./mvnw package -Dnative "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
 
 
 # ---------- Stage 2: Minimal Runtime ----------

@@ -1,0 +1,27 @@
+FROM eclipse-temurin:25 AS build
+WORKDIR /app
+
+# Copy Maven wrapper
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+
+# Set execution permission for the Maven wrapper
+RUN chmod +x ./mvnw
+RUN ./mvnw dependency:go-offline
+
+# Copy the source files after dependencies are cached
+COPY src ./src
+
+RUN ./mvnw clean package -DskipTests
+
+# Stage 2: Create the final Docker image using IBM Semeru Runtime
+FROM ibm-semeru-runtimes:open-25-jre-jammy AS runtime
+WORKDIR /work
+
+# Copy the build files from the target folder in the build stage
+COPY --from=build /app/target/quarkus-app /work/quarkus-app
+
+# quarkus defaults to prod
+ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "/work/quarkus-app/quarkus-run.jar"]
+EXPOSE 8081
