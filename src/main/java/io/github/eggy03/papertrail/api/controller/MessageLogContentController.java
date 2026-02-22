@@ -1,7 +1,6 @@
 package io.github.eggy03.papertrail.api.controller;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.service.MessageLogContentService;
 import io.github.eggy03.papertrail.api.service.locks.MessageLogContentLockingService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
@@ -26,14 +25,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageLogContentController {
 
-    private final MessageLogContentLockingService lockingService; // accessing the MessageLogContentService behind Redisson locks
-    private final MessageLogContentService service; // direct access
+    private final MessageLogContentLockingService service; // accessing the MessageLogContentService behind Redisson locks
 
     @POST
     public Response saveMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
-                .entity(lockingService.saveMessage(dto))
+                .entity(service.saveMessage(dto))
                 .build();
     }
 
@@ -48,14 +46,14 @@ public class MessageLogContentController {
     @PUT
     public Response updateMessage(@Valid MessageLogContentDTO dto) {
         return Response
-                .ok(lockingService.updateMessage(dto))
+                .ok(service.updateMessage(dto))
                 .build();
     }
 
     @DELETE
     @Path("/{messageId}")
     public Response deleteMessage(@PathParam("messageId") @Positive @NotNull Long messageId) {
-        lockingService.deleteMessage(messageId);
+        service.deleteMessage(messageId);
         return Response.noContent().build();
     }
 

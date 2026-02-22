@@ -60,11 +60,12 @@ public class MessageLogContentService {
     @CacheInvalidate(cacheName = "messageContent")
     public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
-        // dirty checking
+        // this check is mostly redundant because the clients usually call view message before updating
         MessageLogContent entity = repository
                 .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message to be updated was never saved"));
 
+        // quarkus will automatically detect changes to this entity and update the database
         entity.setMessageContent(updatedDto.getMessageContent());
         entity.setAuthorId(updatedDto.getAuthorId());
 

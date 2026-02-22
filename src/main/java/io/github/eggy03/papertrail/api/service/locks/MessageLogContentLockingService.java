@@ -48,6 +48,44 @@ public class MessageLogContentLockingService {
         }
     }
 
+    /*
+    Initially, view operations were not locked because only mutating operations
+    (save, update, delete) were expected to require synchronization.
+
+    However, Redisson connections are initialized lazily. During cold startup,
+    the first save/update call blocks while Redisson establishes connections.
+    This introduces significant delay before the lock is acquired.
+
+    Clients typically call view before update. If view is not locked, it can
+    execute immediately while the save operation is still waiting on Redisson
+    initialization. In this case, view may return 404 because the save has not
+    completed yet.
+
+    Since some clients only proceed with update if view returns a DTO,
+    the update is never scheduled when view returns 404. The save eventually
+    completes, but the intended update is skipped.
+
+    Under rapid save/update sequences, this creates race conditions and
+    inconsistent state.
+
+    For this reason, view operations now acquire the same Redisson lock to
+    maintain ordering.
+    */
+    @NotNull
+    public MessageLogContentDTO getMessage(@NonNull Long messageId) {
+
+        RLock rlock = redissonClient.getFairLock(messageId.toString());
+        rlock.lock();
+        log.debug("Acquired VIEW lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
+
+        try {
+            return service.getMessage(messageId);
+        } finally {
+            rlock.unlock();
+            log.debug("Released VIEW lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
+        }
+    }
+
     @NotNull
     public MessageLogContentDTO updateMessage(@NonNull MessageLogContentDTO dto) {
 
