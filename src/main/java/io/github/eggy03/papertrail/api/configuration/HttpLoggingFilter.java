@@ -20,7 +20,7 @@ public class HttpLoggingFilter implements ContainerRequestFilter, ContainerRespo
             case "POST" -> AnsiColor.GREEN;
             case "PUT" -> AnsiColor.YELLOW;
             case "DELETE" -> AnsiColor.RED;
-            default -> AnsiColor.RESET;
+            case null, default -> AnsiColor.RESET;
         };
     }
 
