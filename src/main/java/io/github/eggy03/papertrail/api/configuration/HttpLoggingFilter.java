@@ -32,7 +32,11 @@ public class HttpLoggingFilter implements ContainerRequestFilter, ContainerRespo
     @Override
     public void filter(ContainerRequestContext containerRequestContext, ContainerResponseContext containerResponseContext) {
 
-        long elapsedTime = System.currentTimeMillis() - (long) containerRequestContext.getProperty(START_TIME);
+        Object requestStartTime = containerRequestContext.getProperty(START_TIME);
+        if (requestStartTime == null)
+            return;
+
+        long elapsedTime = System.currentTimeMillis() - (long) requestStartTime;
 
         String requestMethod = containerRequestContext.getMethod();
         String requestURI = containerRequestContext.getUriInfo().getRequestUri().getPath();
