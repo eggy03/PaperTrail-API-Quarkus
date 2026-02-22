@@ -14,7 +14,7 @@ import lombok.ToString;
 @Setter
 @ToString
 @RequiredArgsConstructor
-@Table(name = "message_log_registration_table", schema = "public")
+@Table(name = "message_log_registration_table")
 public class MessageLogRegistration {
 
     @Id
