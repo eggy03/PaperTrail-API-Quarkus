@@ -24,4 +24,3 @@ COPY --from=build /app/target/quarkus-app /work/quarkus-app
 
 # quarkus defaults to prod
 ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "/work/quarkus-app/quarkus-run.jar"]
-EXPOSE 8081
