@@ -70,10 +70,32 @@ cd PaperTrail-API-Quarkus
 
 ```shell
 docker build -f Dockerfile.jvm -t papertrail-api .
-docker run -p 8080:8080 --env-file .env papertrail-api
+docker run -p <host_port>:8080 --env-file .env papertrail-api
 ```
 
-You can use any other open ports if you like
+The container listens on port 8080 by default.
+
+Example:
+
+```shell
+docker run -p 9000:8080 --env-file .env papertrail-api
+```
+
+The API will now listen on http://localhost:9000.
+
+If you want to explicitly set the container port, you can use
+
+```shell
+docker run -e PORT=<container_port> -p <host_port>:<container_port> --env-file .env papertrail-api
+```
+
+Example:
+
+```shell
+docker run -e PORT=7070 -p 9000:7070 --env-file .env papertrail-api
+```
+
+The API will still be accessible on http://localhost:9000.
 
 ### Cloud Based
 
