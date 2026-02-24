@@ -43,7 +43,6 @@ Below are the links to the official docs stating the support status of each of t
 | `DB_USERNAME` | Database username                                           |
 | `DB_PASSWORD` | Database password                                           |
 | `REDIS_URL`   | Example: `redis://<host>:<port>`                            |
-| `PORT`        | Optional. HTTP port the API will bind to. Defaults to 8081. |
 
 Example `.env`
 
@@ -52,7 +51,6 @@ DB_URL=jdbc:postgresql://localhost:5432/papertrail
 DB_USERNAME=postgres
 DB_PASSWORD=yourpassword
 REDIS_URL=redis://localhost:6379
-PORT=8081
 ```
 
 ## Step 2: Deployment Options
@@ -72,10 +70,10 @@ cd PaperTrail-API-Quarkus
 
 ```shell
 docker build -f Dockerfile.jvm -t papertrail-api .
-docker run -p 8081:8081 --env-file .env papertrail-api
+docker run -p 8080:8080 --env-file .env papertrail-api
 ```
 
-If you have used a custom port other than the default 8081, modify the run command and replace it with your port.
+You can use any other open ports if you like
 
 ### Cloud Based
 
