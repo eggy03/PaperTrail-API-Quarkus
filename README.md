@@ -35,6 +35,25 @@ Below are the links to the official docs stating the support status of each of t
 - [Redis Supported Versions](https://redis.io/docs/latest/operate/rs/references/supported-platforms/)
 - [Valkey Supported Versions](https://valkey.io/topics/releases/)
 
+> [!IMPORTANT]
+> This section applies only to users migrating from the Spring-based API to this API.
+>
+> Depending on your existing database setup, you may encounter up to **two** breaking changes:
+>
+> **Case-1**: Using a database other than PostgreSQL
+>
+> You need to migrate your existing data to a newly created Postgres DB.
+> This API exclusively supports Postgres. Support for other DBs have been dropped to ease maintainability.
+>
+> **Case-2**: Already using Postgres
+>
+> There is only **one** breaking change:
+> - Previously, tables were created in the default schema.
+> - The new API uses flyway to check and create tables in a custom schema named `papertrailbot` on startup.
+>
+> The table structures and relationships remain unchanged.
+> You only need to migrate your existing data from the default schema to the `papertrailbot` schema.
+
 ### Environment Variables Required
 
 | Variable      | Description                                                 |
