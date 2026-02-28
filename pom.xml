@@ -25,6 +25,7 @@
         <commons.lang3.version>3.20.0</commons.lang3.version>
         <lombok.version>1.18.42</lombok.version>
         <redisson.quarkus.version>4.2.0</redisson.quarkus.version>
+        <assertj.core.version>3.27.7</assertj.core.version>
     </properties>
 
     <dependencyManagement>
@@ -144,6 +145,12 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
