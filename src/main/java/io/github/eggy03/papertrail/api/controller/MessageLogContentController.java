@@ -1,7 +1,7 @@
 package io.github.eggy03.papertrail.api.controller;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.service.locks.MessageLogContentLockingService;
+import io.github.eggy03.papertrail.api.service.locks.MessageLogContentOperation;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageLogContentController {
 
-    private final MessageLogContentLockingService service; // accessing the MessageLogContentService behind Redisson locks
+    private final MessageLogContentOperation service;
 
     @POST
     public Response saveMessage(@Valid MessageLogContentDTO dto) {
@@ -46,7 +46,7 @@ public class MessageLogContentController {
     @PUT
     public Response updateMessage(@Valid MessageLogContentDTO dto) {
         return Response
-                .ok(service.updateMessage(dto))
+                .ok(service.updateMessage(dto.getMessageId(), dto))
                 .build();
     }
 
