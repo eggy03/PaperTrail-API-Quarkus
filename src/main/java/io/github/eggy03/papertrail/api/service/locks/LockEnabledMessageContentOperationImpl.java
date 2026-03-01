@@ -23,7 +23,7 @@ causing STALE data.
 Retry logic on update and save MAY help, but it's too much boilerplate.
 Kafka probably is the best solution, but I don't want to add the complexity of an entirely new system.
 
-Usually, this should be a one-in-a-million issue unless your delegate health is really tanking, in which case
+Usually, this should be a one-in-a-million issue unless your service health is really tanking, in which case
 maybe vertical or horizontal scaling would help more to keep up with the resource pressure
  */
 @ApplicationScoped
@@ -40,13 +40,13 @@ public class LockEnabledMessageContentOperationImpl implements MessageLogContent
 
         RLock rlock = redissonClient.getFairLock(dto.getMessageId().toString());
         rlock.lock();
-        log.info("Acquired SAVE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
+        log.debug("Acquired SAVE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
 
         try {
             return delegate.saveMessage(dto);
         } finally {
             rlock.unlock();
-            log.info("Released SAVE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
+            log.debug("Released SAVE lock for messageID {} with active lock count {}", rlock.getName(), rlock.getHoldCount());
         }
     }
 
