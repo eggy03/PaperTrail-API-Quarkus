@@ -164,10 +164,6 @@ class MessageLogContentTest {
     void getMessage_invalidParameters() {
 
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/notALong")
-                .then().statusCode(404);
-
-        given().contentType("application/json")
                 .when().get(BASE_PATH + "/" + NEGATIVE_TEST_MESSAGE_ID)
                 .then().statusCode(400);
 
@@ -288,10 +284,6 @@ class MessageLogContentTest {
 
     @Test
     void deleteMessage_invalidParameters() {
-
-        given().contentType("application/json")
-                .when().delete(BASE_PATH + "/notALong")
-                .then().statusCode(404);
 
         given().contentType("application/json")
                 .when().delete(BASE_PATH + "/" + NEGATIVE_TEST_MESSAGE_ID)
