@@ -9,8 +9,11 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +33,30 @@ class MessageLogRegistrationTest {
     @Inject
     RedisDataSource redisDataSource;
 
+    static final Long TEST_GUILD_ID = 1302148573926148096L;
+    static final Long TEST_CHANNEL_ID = 1302148573926148097L;
+
+    static final Long NEGATIVE_TEST_GUILD_ID = -1302148573926148096L;
+    static final Long NEGATIVE_TEST_CHANNEL_ID = -1302148573926148097L;
+
+    // prep a valid Entity
+    final MessageLogRegistration validEntity = new MessageLogRegistration(TEST_GUILD_ID, TEST_CHANNEL_ID);
+    // prep a valid DTO
+    final MessageLogRegistrationDTO validDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, TEST_CHANNEL_ID);
+
+    // prep a stream of invalid DTOs
+    public static Stream<MessageLogRegistrationDTO> invalidDTOs() {
+
+        MessageLogRegistrationDTO nullBodyDTO = new MessageLogRegistrationDTO(null, null);
+        MessageLogRegistrationDTO nullGuildIdDTO = new MessageLogRegistrationDTO(null, TEST_CHANNEL_ID);
+        MessageLogRegistrationDTO nullChannelIdDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, null);
+
+        MessageLogRegistrationDTO negativeGuildIdDTO = new MessageLogRegistrationDTO(NEGATIVE_TEST_GUILD_ID, TEST_CHANNEL_ID);
+        MessageLogRegistrationDTO negativeChannelIdDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, NEGATIVE_TEST_CHANNEL_ID);
+
+        return Stream.of(nullBodyDTO, nullGuildIdDTO, nullChannelIdDTO, negativeGuildIdDTO, negativeChannelIdDTO);
+    }
+
     @BeforeEach
     void cleanState() {
         QuarkusTransaction.requiringNew().run(repository::deleteAll);
@@ -39,69 +66,44 @@ class MessageLogRegistrationTest {
     @Test
     void registerGuild_success() {
 
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        dto.setGuildId(123L);
-        dto.setChannelId(456L);
-
-        given().contentType("application/json").body(dto)
+        given().contentType("application/json").body(validDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201)
-                .body("guildId", is(123))
-                .body("channelId", is(456));
+                .body("guildId", is(TEST_GUILD_ID))
+                .body("channelId", is(TEST_CHANNEL_ID));
 
         // assert that save was a success
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(MessageLogRegistration::getGuildId, MessageLogRegistration::getChannelId)
-                .containsExactly(123L, 456L);
+                .containsExactly(TEST_GUILD_ID, TEST_CHANNEL_ID);
     }
 
     @Test
-    void registerGuild_exists_conflicts() {
-
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        dto.setGuildId(123L);
-        dto.setChannelId(456L);
+    void registerGuild_alreadyExists_conflicts() {
 
         // register once, expect success
-        given().contentType("application/json").body(dto)
+        given().contentType("application/json").body(validDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201)
-                .body("guildId", is(123))
-                .body("channelId", is(456));
+                .body("guildId", is(TEST_GUILD_ID))
+                .body("channelId", is(TEST_CHANNEL_ID));
 
         // register again, expect 409 conflict
-        given().contentType("application/json").body(dto)
+        given().contentType("application/json").body(validDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(409);
 
     }
 
-    @Test
-    void registerGuild_nullBody_badRequest() {
-
-        // null guild and channel id
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-
-        given().contentType("application/json").body(dto)
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // positive guild id but null channel id
-        dto.setGuildId(123L);
-
-        given().contentType("application/json").body(dto)
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // null guild id but positive channel id
-        dto.setGuildId(null);
-        dto.setChannelId(456L);
+    @ParameterizedTest
+    @MethodSource("invalidDTOs")
+    void registerGuild_validationFails_badRequest(MessageLogRegistrationDTO dto) {
 
         given().contentType("application/json").body(dto)
                 .when().post(BASE_PATH)
@@ -110,56 +112,22 @@ class MessageLogRegistrationTest {
         // assert that nothing was saved
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
-
-        assertThat(entityOptional)
-                .isEmpty();
-    }
-
-    @Test
-    void registerGuild_malformedBody_badRequest() {
-
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        // negative guild id and channel id
-        dto.setGuildId(-123L);
-        dto.setChannelId(-456L);
-
-        given().contentType("application/json").body(dto)
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // positive guild id but negative channel id
-        dto.setGuildId(123L);
-        dto.setChannelId(-456L);
-
-        given().contentType("application/json").body(dto)
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // negative guild id but positive channel id
-        dto.setGuildId(-123L);
-        dto.setChannelId(456L);
-
-        given().contentType("application/json").body(dto)
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // invalid json
-        given().contentType("application/json").body("\"text\"")
-                .when().post(BASE_PATH)
-                .then().statusCode(400);
-
-        // assert that nothing was saved
-        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
-                .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         Optional<MessageLogRegistration> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(-123L));
+                .call(() -> repository.findByIdOptional(NEGATIVE_TEST_GUILD_ID));
 
         assertThat(entityOptional).isEmpty();
         assertThat(entityOptionalTwo).isEmpty();
+    }
+
+    @Test
+    void registerGuild_deserializationFails_badRequest() {
+
+        given().contentType("application/json").body("\"text\"")
+                .when().post(BASE_PATH)
+                .then().statusCode(400);
 
     }
 
@@ -167,14 +135,14 @@ class MessageLogRegistrationTest {
     void getGuild_success() {
 
         // register
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(new MessageLogRegistration(123L, 456L)));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
 
         // view registered guild - expect success
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/123")
+                .when().get(BASE_PATH + "/" + TEST_GUILD_ID)
                 .then().statusCode(200)
-                .body("guildId", is(123))
-                .body("channelId", is(456));
+                .body("guildId", is(TEST_GUILD_ID))
+                .body("channelId", is(TEST_CHANNEL_ID));
 
     }
 
@@ -183,27 +151,20 @@ class MessageLogRegistrationTest {
 
         // view un-registered guild - expect not found
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/123")
+                .when().get(BASE_PATH + "/" + TEST_GUILD_ID)
                 .then().statusCode(404);
 
     }
 
     @Test
-    void getGuild_notALong_notFound() {
+    void getGuild_invalidParameters() {
 
-        // view un-registered guild - expect not found
         given().contentType("application/json")
                 .when().get(BASE_PATH + "/notALong")
                 .then().statusCode(404);
 
-    }
-
-    @Test
-    void getGuild_invalidParameter_badRequest() {
-
-        // negative long
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/-123")
+                .when().get(BASE_PATH + "/" + NEGATIVE_TEST_GUILD_ID)
                 .then().statusCode(400);
 
     }
@@ -212,150 +173,94 @@ class MessageLogRegistrationTest {
     void updateGuild_success() {
 
         // register
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(new MessageLogRegistration(123L, 456L)));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
 
         // update
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        dto.setGuildId(123L);
-        dto.setChannelId(457L);
+        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO(TEST_GUILD_ID, 1302148579426154496L);
 
         given().contentType("application/json").body(dto)
                 .when().put(BASE_PATH)
                 .then().statusCode(200)
-                .body("guildId", is(123))
-                .body("channelId", is(457));
+                .body("guildId", is(TEST_GUILD_ID))
+                .body("channelId", is(1302148579426154496L));
 
         // verify update
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(MessageLogRegistration::getGuildId, MessageLogRegistration::getChannelId)
-                .containsExactly(123L, 457L);
+                .containsExactly(TEST_GUILD_ID, 1302148579426154496L);
 
     }
 
     @Test
     void updateGuild_doesNotExist() {
 
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        dto.setGuildId(123L);
-        dto.setChannelId(456L);
-
         // update without registering
-        given().contentType("application/json").body(dto)
+        given().contentType("application/json").body(validDTO)
                 .when().put(BASE_PATH)
                 .then().statusCode(404);
 
         // verify update didn't register a new guild
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
-
-        assertThat(entityOptional)
-                .isEmpty();
-
-    }
-
-    @Test
-    void updateGuild_nullBody_badRequest() {
-
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-
-        // null guild and channel id
-        given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-        // null guild id
-        dto.setChannelId(456L);
-        given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-        // null channel id
-        dto.setGuildId(123L);
-        dto.setChannelId(null);
-        given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-
-        // verify that updates were not applied
-        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
-                .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         assertThat(entityOptional).isEmpty();
+
     }
 
-    @Test
-    void updateGuild_malformedBody_badRequest() {
-
-        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO();
-        // negative guild id and channel id
-        dto.setGuildId(-123L);
-        dto.setChannelId(-456L);
+    @ParameterizedTest
+    @MethodSource("invalidDTOs")
+    void updateGuild_validationFails_badRequest(MessageLogRegistrationDTO dto) {
 
         given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-        // positive guild id but negative channel id
-        dto.setGuildId(123L);
-        dto.setChannelId(-456L);
-
-        given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-        // negative guild id but positive channel id
-        dto.setGuildId(-123L);
-        dto.setChannelId(456L);
-
-        given().contentType("application/json").body(dto)
-                .when().put(BASE_PATH)
-                .then().statusCode(400);
-
-        // invalid json
-        given().contentType("application/json").body("\"text\"")
                 .when().put(BASE_PATH)
                 .then().statusCode(400);
 
         // assert that nothing was updated
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         Optional<MessageLogRegistration> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(-123L));
+                .call(() -> repository.findByIdOptional(NEGATIVE_TEST_GUILD_ID));
 
         assertThat(entityOptional).isEmpty();
         assertThat(entityOptionalTwo).isEmpty();
     }
 
     @Test
+    void updateGuild_deserializationFails_badRequest() {
+
+        given().contentType("application/json").body("\"text\"")
+                .when().put(BASE_PATH)
+                .then().statusCode(400);
+
+    }
+
+    @Test
     void deleteGuild_success() {
 
         // register
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(new MessageLogRegistration(123L, 456L)));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
 
         // delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/123")
+                .when().delete(BASE_PATH + "/" + TEST_GUILD_ID)
                 .then().statusCode(204);
 
         // verify deletion
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
-        assertThat(entityOptional)
-                .isEmpty();
+        assertThat(entityOptional).isEmpty();
 
     }
 
@@ -364,35 +269,26 @@ class MessageLogRegistrationTest {
 
         // attempt delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/123")
+                .when().delete(BASE_PATH + "/" + TEST_GUILD_ID)
                 .then().statusCode(404);
 
         // verify guild actually does not exist
         Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
-        assertThat(entityOptional)
-                .isEmpty();
+        assertThat(entityOptional).isEmpty();
 
     }
 
     @Test
-    void deleteGuild_notALong_notFound() {
-
-        // view un-registered guild - expect not found
+    void deleteGuild_invalidParameters() {
         given().contentType("application/json")
                 .when().delete(BASE_PATH + "/notALong")
                 .then().statusCode(404);
 
-    }
-
-    @Test
-    void deleteGuild_invalidParameter_badRequest() {
-
-        // negative long
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/-123")
+                .when().delete(BASE_PATH + "/" + NEGATIVE_TEST_GUILD_ID)
                 .then().statusCode(400);
 
     }
