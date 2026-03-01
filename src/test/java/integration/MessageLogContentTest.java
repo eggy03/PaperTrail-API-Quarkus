@@ -32,21 +32,29 @@ class MessageLogContentTest {
     // see https://github.com/quarkiverse/quarkus-minio/issues/413 and https://github.com/quarkusio/quarkus/discussions/25120
     @Inject
     RedisDataSource redisDataSource;
+
+    static final Long TEST_MESSAGE_ID = 1302148573926148096L;
+    static final String TEST_MESSAGE_CONTENT = "message";
+    static final Long TEST_AUTHOR_ID = 1302148573926148097L;
+
+    static final Long NEGATIVE_TEST_MESSAGE_ID = -1302148573926148096L;
+    static final Long NEGATIVE_TEST_AUTHOR_ID = -1302148573926148097L;
+
     // prep a valid Entity
-    MessageLogContent validEntity = new MessageLogContent(123L, "message", 456L, null);
+    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null);
     // prep a valid DTO
-    MessageLogContentDTO validDTO = new MessageLogContentDTO(123L, "message", 456L);
+    final MessageLogContentDTO validDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
 
     // prep a stream of invalid DTOs
     public static Stream<MessageLogContentDTO> invalidDTOs() {
 
         MessageLogContentDTO nullBodyDTO = new MessageLogContentDTO(null, null, null);
-        MessageLogContentDTO nullMessageIdDTO = new MessageLogContentDTO(null, "message", 456L);
-        MessageLogContentDTO nullMessageContentDTO = new MessageLogContentDTO(123L, null, 456L);
-        MessageLogContentDTO nullAuthorIdDTO = new MessageLogContentDTO(123L, "message", null);
+        MessageLogContentDTO nullMessageIdDTO = new MessageLogContentDTO(null, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
+        MessageLogContentDTO nullMessageContentDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, null, TEST_AUTHOR_ID);
+        MessageLogContentDTO nullAuthorIdDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, null);
 
-        MessageLogContentDTO negativeMessageIdDTO = new MessageLogContentDTO(-123L, "message", 456L);
-        MessageLogContentDTO negativeAuthorIdDTO = new MessageLogContentDTO(123L, "message", -456L);
+        MessageLogContentDTO negativeMessageIdDTO = new MessageLogContentDTO(NEGATIVE_TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
+        MessageLogContentDTO negativeAuthorIdDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, NEGATIVE_TEST_AUTHOR_ID);
 
         return Stream.of(nullBodyDTO, nullMessageIdDTO, nullMessageContentDTO, nullAuthorIdDTO, negativeMessageIdDTO, negativeAuthorIdDTO);
     }
@@ -63,32 +71,32 @@ class MessageLogContentTest {
         given().contentType("application/json").body(validDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201)
-                .body("messageId", is(123))
-                .body("messageContent", is("message"))
-                .body("authorId", is(456));
+                .body("messageId", is(TEST_MESSAGE_ID))
+                .body("messageContent", is(TEST_MESSAGE_CONTENT))
+                .body("authorId", is(TEST_AUTHOR_ID));
 
         // assert that save was a success
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(MessageLogContent::getMessageId, MessageLogContent::getMessageContent, MessageLogContent::getAuthorId)
-                .containsExactly(123L, "message", 456L);
+                .containsExactly(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
     }
 
     @Test
-    void saveMessage_exists_conflicts() {
+    void saveMessage_alreadyExists_conflicts() {
 
         // save once, expect success
         given().contentType("application/json").body(validDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201)
-                .body("messageId", is(123))
-                .body("messageContent", is("message"))
-                .body("authorId", is(456));
+                .body("messageId", is(TEST_MESSAGE_ID))
+                .body("messageContent", is(TEST_MESSAGE_CONTENT))
+                .body("authorId", is(TEST_AUTHOR_ID));
 
         // save again, expect 409 conflict
         given().contentType("application/json").body(validDTO)
@@ -108,9 +116,14 @@ class MessageLogContentTest {
         // assert that nothing was saved
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
+
+        Optional<MessageLogContent> entityOptionalTwo = QuarkusTransaction
+                .requiringNew()
+                .call(() -> repository.findByIdOptional(NEGATIVE_TEST_MESSAGE_ID));
 
         assertThat(entityOptional).isEmpty();
+        assertThat(entityOptionalTwo).isEmpty();
     }
 
     @Test
@@ -130,11 +143,11 @@ class MessageLogContentTest {
 
         // view message - expect success
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/123")
+                .when().get(BASE_PATH + "/" + TEST_MESSAGE_ID)
                 .then().statusCode(200)
-                .body("messageId", is(123))
-                .body("messageContent", is("message"))
-                .body("authorId", is(456));
+                .body("messageId", is(TEST_MESSAGE_ID))
+                .body("messageContent", is(TEST_MESSAGE_CONTENT))
+                .body("authorId", is(TEST_AUTHOR_ID));
 
     }
 
@@ -142,7 +155,7 @@ class MessageLogContentTest {
     void getMessage_notSaved_notFound() {
 
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/123")
+                .when().get(BASE_PATH + "/" + TEST_MESSAGE_ID)
                 .then().statusCode(404);
 
     }
@@ -155,7 +168,7 @@ class MessageLogContentTest {
                 .then().statusCode(404);
 
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/-123")
+                .when().get(BASE_PATH + "/" + NEGATIVE_TEST_MESSAGE_ID)
                 .then().statusCode(400);
 
     }
@@ -167,25 +180,25 @@ class MessageLogContentTest {
         QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
 
         // create an updated DTO
-        MessageLogContentDTO dto = new MessageLogContentDTO(123L, "updatedMessage", 457L);
+        MessageLogContentDTO dto = new MessageLogContentDTO(TEST_MESSAGE_ID, "updatedMessage", TEST_AUTHOR_ID);
 
         given().contentType("application/json").body(dto)
                 .when().put(BASE_PATH)
                 .then().statusCode(200)
-                .body("messageId", is(123))
+                .body("messageId", is(TEST_MESSAGE_ID))
                 .body("messageContent", is("updatedMessage"))
-                .body("authorId", is(457));
+                .body("authorId", is(TEST_AUTHOR_ID));
 
         // verify update
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(MessageLogContent::getMessageId, MessageLogContent::getMessageContent, MessageLogContent::getAuthorId)
-                .containsExactly(123L, "updatedMessage", 457L);
+                .containsExactly(TEST_MESSAGE_ID, "updatedMessage", TEST_AUTHOR_ID);
 
     }
 
@@ -200,7 +213,7 @@ class MessageLogContentTest {
         // verify update didn't register a new guild
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         assertThat(entityOptional).isEmpty();
 
@@ -217,11 +230,11 @@ class MessageLogContentTest {
         // verify that updates were not applied
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         Optional<MessageLogContent> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(-123L));
+                .call(() -> repository.findByIdOptional(NEGATIVE_TEST_MESSAGE_ID));
 
         assertThat(entityOptional).isEmpty();
         assertThat(entityOptionalTwo).isEmpty();
@@ -244,13 +257,13 @@ class MessageLogContentTest {
 
         // delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/123")
+                .when().delete(BASE_PATH + "/" + TEST_MESSAGE_ID)
                 .then().statusCode(204);
 
         // verify deletion
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         assertThat(entityOptional).isEmpty();
 
@@ -261,13 +274,13 @@ class MessageLogContentTest {
 
         // attempt delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/123")
+                .when().delete(BASE_PATH + "/" + TEST_MESSAGE_ID)
                 .then().statusCode(404);
 
         // verify guild actually does not exist
         Optional<MessageLogContent> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(123L));
+                .call(() -> repository.findByIdOptional(TEST_MESSAGE_ID));
 
         assertThat(entityOptional).isEmpty();
 
@@ -281,7 +294,7 @@ class MessageLogContentTest {
                 .then().statusCode(404);
 
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/-123")
+                .when().delete(BASE_PATH + "/" + NEGATIVE_TEST_MESSAGE_ID)
                 .then().statusCode(400);
 
     }
