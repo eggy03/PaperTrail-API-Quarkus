@@ -1,8 +1,8 @@
 package integration;
 
-import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
-import io.github.eggy03.papertrail.api.entity.AuditLogRegistration;
-import io.github.eggy03.papertrail.api.repository.AuditLogRegistrationRepository;
+import io.github.eggy03.papertrail.api.dto.MessageLogRegistrationDTO;
+import io.github.eggy03.papertrail.api.entity.MessageLogRegistration;
+import io.github.eggy03.papertrail.api.repository.MessageLogRegistrationRepository;
 import io.quarkus.narayana.jta.QuarkusTransaction;
 import io.quarkus.redis.datasource.RedisDataSource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -20,12 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-class AuditLogRegistrationTest {
+class MessageLogRegistrationServiceIntegrationTest {
 
-    private static final String BASE_PATH = "/api/v1/log/audit";
+    private static final String BASE_PATH = "/api/v1/log/message";
 
     @Inject
-    AuditLogRegistrationRepository repository;
+    MessageLogRegistrationRepository repository;
 
     // RedisDataSource while not annotated for CDI, does get injected because Quarkus handles this synthetic bean
     // Or IntelliJ does not see the dependencies
@@ -40,19 +40,19 @@ class AuditLogRegistrationTest {
     static final Long NEGATIVE_TEST_CHANNEL_ID = -1302148573926148097L;
 
     // prep a valid Entity
-    final AuditLogRegistration validEntity = new AuditLogRegistration(TEST_GUILD_ID, TEST_CHANNEL_ID);
+    final MessageLogRegistration validEntity = new MessageLogRegistration(TEST_GUILD_ID, TEST_CHANNEL_ID);
     // prep a valid DTO
-    final AuditLogRegistrationDTO validDTO = new AuditLogRegistrationDTO(TEST_GUILD_ID, TEST_CHANNEL_ID);
+    final MessageLogRegistrationDTO validDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, TEST_CHANNEL_ID);
 
     // prep a stream of invalid DTOs
-    public static Stream<AuditLogRegistrationDTO> invalidDTOs() {
+    public static Stream<MessageLogRegistrationDTO> invalidDTOs() {
 
-        AuditLogRegistrationDTO nullBodyDTO = new AuditLogRegistrationDTO(null, null);
-        AuditLogRegistrationDTO nullGuildIdDTO = new AuditLogRegistrationDTO(null, TEST_CHANNEL_ID);
-        AuditLogRegistrationDTO nullChannelIdDTO = new AuditLogRegistrationDTO(TEST_GUILD_ID, null);
+        MessageLogRegistrationDTO nullBodyDTO = new MessageLogRegistrationDTO(null, null);
+        MessageLogRegistrationDTO nullGuildIdDTO = new MessageLogRegistrationDTO(null, TEST_CHANNEL_ID);
+        MessageLogRegistrationDTO nullChannelIdDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, null);
 
-        AuditLogRegistrationDTO negativeGuildIdDTO = new AuditLogRegistrationDTO(NEGATIVE_TEST_GUILD_ID, TEST_CHANNEL_ID);
-        AuditLogRegistrationDTO negativeChannelIdDTO = new AuditLogRegistrationDTO(TEST_GUILD_ID, NEGATIVE_TEST_CHANNEL_ID);
+        MessageLogRegistrationDTO negativeGuildIdDTO = new MessageLogRegistrationDTO(NEGATIVE_TEST_GUILD_ID, TEST_CHANNEL_ID);
+        MessageLogRegistrationDTO negativeChannelIdDTO = new MessageLogRegistrationDTO(TEST_GUILD_ID, NEGATIVE_TEST_CHANNEL_ID);
 
         return Stream.of(nullBodyDTO, nullGuildIdDTO, nullChannelIdDTO, negativeGuildIdDTO, negativeChannelIdDTO);
     }
@@ -73,14 +73,14 @@ class AuditLogRegistrationTest {
                 .body("channelId", is(TEST_CHANNEL_ID));
 
         // assert that save was a success
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
-                .extracting(AuditLogRegistration::getGuildId, AuditLogRegistration::getChannelId)
+                .extracting(MessageLogRegistration::getGuildId, MessageLogRegistration::getChannelId)
                 .containsExactly(TEST_GUILD_ID, TEST_CHANNEL_ID);
     }
 
@@ -103,18 +103,18 @@ class AuditLogRegistrationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDTOs")
-    void registerGuild_validationFails_badRequest(AuditLogRegistrationDTO dto) {
+    void registerGuild_validationFails_badRequest(MessageLogRegistrationDTO dto) {
 
         given().contentType("application/json").body(dto)
                 .when().post(BASE_PATH)
                 .then().statusCode(400);
 
         // assert that nothing was saved
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
-        Optional<AuditLogRegistration> entityOptionalTwo = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(NEGATIVE_TEST_GUILD_ID));
 
@@ -172,7 +172,7 @@ class AuditLogRegistrationTest {
         QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
 
         // update
-        AuditLogRegistrationDTO dto = new AuditLogRegistrationDTO(TEST_GUILD_ID, 1302148579426154496L);
+        MessageLogRegistrationDTO dto = new MessageLogRegistrationDTO(TEST_GUILD_ID, 1302148579426154496L);
 
         given().contentType("application/json").body(dto)
                 .when().put(BASE_PATH)
@@ -181,14 +181,14 @@ class AuditLogRegistrationTest {
                 .body("channelId", is(1302148579426154496L));
 
         // verify update
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
-                .extracting(AuditLogRegistration::getGuildId, AuditLogRegistration::getChannelId)
+                .extracting(MessageLogRegistration::getGuildId, MessageLogRegistration::getChannelId)
                 .containsExactly(TEST_GUILD_ID, 1302148579426154496L);
 
     }
@@ -202,7 +202,7 @@ class AuditLogRegistrationTest {
                 .then().statusCode(404);
 
         // verify update didn't register a new guild
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
@@ -212,18 +212,18 @@ class AuditLogRegistrationTest {
 
     @ParameterizedTest
     @MethodSource("invalidDTOs")
-    void updateGuild_validationFails_badRequest(AuditLogRegistrationDTO dto) {
+    void updateGuild_validationFails_badRequest(MessageLogRegistrationDTO dto) {
 
         given().contentType("application/json").body(dto)
                 .when().put(BASE_PATH)
                 .then().statusCode(400);
 
         // assert that nothing was updated
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
-        Optional<AuditLogRegistration> entityOptionalTwo = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(NEGATIVE_TEST_GUILD_ID));
 
@@ -252,7 +252,7 @@ class AuditLogRegistrationTest {
                 .then().statusCode(204);
 
         // verify deletion
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 
@@ -269,7 +269,7 @@ class AuditLogRegistrationTest {
                 .then().statusCode(404);
 
         // verify guild actually does not exist
-        Optional<AuditLogRegistration> entityOptional = QuarkusTransaction
+        Optional<MessageLogRegistration> entityOptional = QuarkusTransaction
                 .requiringNew()
                 .call(() -> repository.findByIdOptional(TEST_GUILD_ID));
 

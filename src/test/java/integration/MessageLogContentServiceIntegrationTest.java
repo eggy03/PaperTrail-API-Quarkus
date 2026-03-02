@@ -20,7 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.is;
 
 @QuarkusTest
-class MessageLogContentTest {
+class MessageLogContentServiceIntegrationTest {
 
     private static final String BASE_PATH = "/api/v1/content/message";
 
