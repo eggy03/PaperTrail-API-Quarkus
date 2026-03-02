@@ -4,7 +4,7 @@
 
     <groupId>io.github.eggy03</groupId>
     <artifactId>papertrail-api-quarkus</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>quarkus</packaging>
 
     <properties>
@@ -14,7 +14,7 @@
 
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.31.4</quarkus.platform.version>
+        <quarkus.platform.version>3.32.1</quarkus.platform.version>
         <skipITs>true</skipITs>
 
         <compiler-plugin.version>3.14.1</compiler-plugin.version>
