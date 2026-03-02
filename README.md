@@ -21,10 +21,10 @@ API service for the PaperTrail Bot, built with Quarkus 3 and optimized for nativ
 
 ### Services Required
 
-| Service               | Version        |
-|-----------------------|----------------|
-| `Relational Database` | Postgres       |
-| `Distributed Cache`   | Redis / Valkey |
+| Service Type          | Supported Variants |
+|-----------------------|--------------------|
+| `Relational Database` | Postgres           |
+| `Distributed Cache`   | Redis / Valkey     |
 
 It is recommended that you deploy the latest or the officially supported versions of Postgres and Redis or Valkey.
 At the time of development, Postgres 17 and 18 and Valkey 8 were fully supported.
@@ -34,25 +34,6 @@ Below are the links to the official docs stating the support status of each of t
 - [Postgres Supported Versions](https://www.postgresql.org/support/versioning/)
 - [Redis Supported Versions](https://redis.io/docs/latest/operate/rs/references/supported-platforms/)
 - [Valkey Supported Versions](https://valkey.io/topics/releases/)
-
-> [!IMPORTANT]
-> This section applies only to users migrating from the Spring-based API to this API.
->
-> Depending on your existing database setup, you may encounter up to **two** breaking changes:
->
-> **Case-1**: Using a database other than PostgreSQL
->
-> You need to migrate your existing data to a newly created Postgres DB.
-> This API exclusively supports Postgres. Support for other DBs have been dropped to ease maintainability.
->
-> **Case-2**: Already using Postgres
->
-> There is only **one** breaking change:
-> - Previously, tables were created in the default schema.
-> - The new API uses flyway to check and create tables in a custom schema named `papertrailbot` on startup.
->
-> The table structures and relationships remain unchanged.
-> You only need to migrate your existing data from the default schema to the `papertrailbot` schema.
 
 ### Environment Variables Required
 
@@ -155,6 +136,28 @@ The service exposes three major health check endpoints that determine the status
 Some cloud platforms may require these endpoints to periodically determine the health of your deployed service.
 
 > /q/health - Accumulates all health check procedures in the application.
+
+# Migration Guide
+
+> [!NOTE]
+> This section applies only to users migrating from the Spring-based API.
+
+Depending on your existing database setup, you may encounter up to **two** breaking changes:
+
+**Case-1**: Using a database other than PostgreSQL
+
+You need to migrate your existing data to a newly created Postgres DB.
+This API exclusively supports Postgres. Support for other DBs have been dropped to ease maintainability.
+
+**Case-2**: Already using Postgres
+
+There is only **one** breaking change:
+
+- Previously, tables were created in the default schema.
+- The new API uses flyway to check and create tables in a custom schema named `papertrailbot` on startup.
+
+The table structures and relationships remain unchanged.
+You only need to migrate your existing data from the default schema to the `papertrailbot` schema.
 
 # License
 

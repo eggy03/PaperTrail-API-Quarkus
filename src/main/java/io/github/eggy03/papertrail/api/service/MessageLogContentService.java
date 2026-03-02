@@ -2,8 +2,8 @@ package io.github.eggy03.papertrail.api.service;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
 import io.github.eggy03.papertrail.api.entity.MessageLogContent;
-import io.github.eggy03.papertrail.api.exceptions.MessageContentException;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
+import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
@@ -11,9 +11,9 @@ import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.scheduler.Scheduled;
+import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotNull;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class MessageLogContentService {
             log.debug("{}Saved message with ID={}{}", AnsiColor.GREEN, dto.getMessageId(), AnsiColor.RESET);
             return dto;
         } catch (ConstraintViolationException e) {// from hibernate
-            throw new MessageContentException(e);
+            throw new MessageSaveFailureException(e);
         }
         // API Note: While ConstraintViolationException covers for a lot of constraints other than PK constraint
         // We have already covered them during dto validation phase in the controller
@@ -77,14 +77,10 @@ public class MessageLogContentService {
     @CacheInvalidate(cacheName = "messageContent")
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
-        repository
-                .findByIdOptional(messageId)
-                .orElseThrow(() -> new MessageNotFoundException("Message to be deleted was never saved"));
-
         if (repository.deleteById(messageId))
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         else
-            log.warn("{}Failed to delete message having ID={}{}", AnsiColor.YELLOW, messageId, AnsiColor.RESET);
+            throw new MessageNotFoundException("Message to be deleted was never saved");
     }
 
     @Scheduled(every = "24h")

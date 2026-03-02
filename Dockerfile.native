@@ -16,7 +16,7 @@ COPY src ./src
 
 # Build native binary
 # quarkus defaults to prod
-RUN ./mvnw package -Dnative "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
+RUN ./mvnw clean package -DskipTests -Dnative "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
 
 
 # ---------- Stage 2: Minimal Runtime ----------
