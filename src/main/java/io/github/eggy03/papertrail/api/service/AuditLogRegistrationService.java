@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 
-
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
@@ -69,13 +68,9 @@ public class AuditLogRegistrationService {
     @CacheInvalidate(cacheName = "auditLog")
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
-        repository
-                .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
-
         if (repository.deleteById(guildId))
             log.debug("{}Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         else
-            log.warn("{}Failed to delete audit log guild with ID={}{}", AnsiColor.YELLOW, guildId, AnsiColor.RESET);
+            throw new GuildNotFoundException("Guild is not registered for audit logging");
     }
 }

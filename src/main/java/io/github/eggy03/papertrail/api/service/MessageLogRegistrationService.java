@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 
-
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j

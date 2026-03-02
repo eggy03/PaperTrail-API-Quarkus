@@ -77,14 +77,10 @@ public class MessageLogContentService {
     @CacheInvalidate(cacheName = "messageContent")
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
-        repository
-                .findByIdOptional(messageId)
-                .orElseThrow(() -> new MessageNotFoundException("Message to be deleted was never saved"));
-
         if (repository.deleteById(messageId))
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         else
-            log.warn("{}Failed to delete message having ID={}{}", AnsiColor.YELLOW, messageId, AnsiColor.RESET);
+            throw new MessageNotFoundException("Message to be deleted was never saved");
     }
 
     @Scheduled(every = "24h")
