@@ -3,7 +3,7 @@ package io.github.eggy03.papertrail.api.service;
 import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.entity.AuditLogRegistration;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
-import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationException;
+import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureException;
 import io.github.eggy03.papertrail.api.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.AuditLogRegistrationRepository;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
@@ -34,7 +34,7 @@ public class AuditLogRegistrationService {
             log.debug("{}Saved audit log guild with ID={}{}", AnsiColor.GREEN, dto.getGuildId(), AnsiColor.RESET);
             return dto;
         } catch (ConstraintViolationException e) { // from hibernate
-            throw new GuildRegistrationException(e);
+            throw new GuildRegistrationFailureException(e);
         }
     }
 

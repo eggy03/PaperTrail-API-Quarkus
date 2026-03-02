@@ -3,7 +3,7 @@ package unit;
 import io.github.eggy03.papertrail.api.dto.MessageLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.entity.MessageLogRegistration;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
-import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationException;
+import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogRegistrationRepository;
 import io.github.eggy03.papertrail.api.service.MessageLogRegistrationService;
@@ -59,7 +59,7 @@ class MessageLogRegistrationServiceUnitTest {
         when(mapper.toEntity(validDTO)).thenReturn(validEntity);
         doThrow(ConstraintViolationException.class).when(repository).persistAndFlush(validEntity);
 
-        assertThrows(GuildRegistrationException.class, () -> service.registerGuild(validDTO));
+        assertThrows(GuildRegistrationFailureException.class, () -> service.registerGuild(validDTO));
 
         verify(mapper).toEntity(validDTO);
         verify(repository).persistAndFlush(validEntity);

@@ -2,8 +2,8 @@ package io.github.eggy03.papertrail.api.service;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
 import io.github.eggy03.papertrail.api.entity.MessageLogContent;
-import io.github.eggy03.papertrail.api.exceptions.MessageContentException;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
+import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
@@ -38,7 +38,7 @@ public class MessageLogContentService {
             log.debug("{}Saved message with ID={}{}", AnsiColor.GREEN, dto.getMessageId(), AnsiColor.RESET);
             return dto;
         } catch (ConstraintViolationException e) {// from hibernate
-            throw new MessageContentException(e);
+            throw new MessageSaveFailureException(e);
         }
         // API Note: While ConstraintViolationException covers for a lot of constraints other than PK constraint
         // We have already covered them during dto validation phase in the controller
