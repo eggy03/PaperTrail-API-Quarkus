@@ -12,20 +12,42 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
 /*
-Have a centralized locking mechanism to avoid concurrency issues during high volume message logging
+Have a centralized locking mechanism to avoid concurrency issues across scaled instances.
 
-While this solves for concurrency issues where an UPDATE/DELETE is being performed while a SAVE
-is being processed, it cannot solve the ORDERING ISSUE.
-That is, if for some network or performance reason an UPDATE takes the lock before SAVE,
-the UPDATE will just silently fail cause there is NOTHING to update and the OLD state will be SAVED instead,
-causing STALE data.
+All operations (save, update, delete, view) for the same messageId are
+serialized so that only one operation executes at a time. This protects
+against race conditions caused by parallel processing, transient service
+degradation, or timing variance between nodes.
 
-Retry logic on update and save MAY help, but it's too much boilerplate.
-Kafka probably is the best solution, but I don't want to add the complexity of an entirely new system.
+Operations are executed in the order in which they successfully acquire
+the Redis lock.
+If UPDATE or DELETE is
+processed before SAVE due to event timing, that order will be serialized
+as received.
 
-Usually, this should be a one-in-a-million issue unless your service health is really tanking, in which case
-maybe vertical or horizontal scaling would help more to keep up with the resource pressure
- */
+Developer Notes
+
+Locks are applied to message log content flows but not to audit or message log registration flows
+for the following reasons:
+
+1) Message log content flow is high-frequency and mutation-heavy (create/update/delete),
+   which increases the probability of concurrent execution across scaled instances.
+   Registration flows are typically low-volume and one-time operations,
+   making concurrency races significantly less likely.
+
+2) Message logging content flow SAVE operations do not provide immediate visual feedback.
+   In contrast, ALL operations in registration flows return explicit success or failure responses to the client.
+   Moderators therefore naturally wait for the results when setting up the bot,
+   reducing the likelihood of overlapping operations.
+
+   In message logging, only UPDATE and DELETE actions generate visible
+   feedback, and even then moderators are not expected to monitor or immediately check
+   for updated or deleted message logs.
+   Because message saves and edits are individual user-driven and
+   continuous, race conditions in logging flows are almost impossible to be
+   detected externally.
+
+*/
 @ApplicationScoped
 @IfBuildProperty(name = "message.locks.enabled", stringValue = "true")
 @RequiredArgsConstructor
