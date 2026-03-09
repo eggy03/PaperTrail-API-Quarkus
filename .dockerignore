@@ -23,11 +23,7 @@ target/
 *.war
 *.ear
 hs_err_pid*
-.gradle/
 build/
-!gradle-wrapper.jar
-.mvn/
-!.mvn/wrapper/maven-wrapper.jar
 
 # Version control
 .git/
