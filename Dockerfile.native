@@ -23,10 +23,6 @@ RUN ./mvnw clean package -DskipTests -Dnative "-Dquarkus.native.additional-build
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6
 WORKDIR /work/
 
-# Install cURL
-USER root
-RUN microdnf install -y curl && microdnf clean all
-
 # Copy the compiled binary
 COPY --from=build /native-build/target/*-runner /work/application
 
