@@ -56,16 +56,18 @@ REDIS_URL=redis://localhost:6379
 
 ```shell
 # either jvm
-docker run -d --name papertrail-api -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-jvm
+docker run -d --name papertrail-api -p 9000:8080 -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-jvm
 # or native
-docker run -d --name papertrail-api -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-native
+docker run -d --name papertrail-api -p 9000:8080 -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-native
 ```
 
 You can also use an `.env` file instead
 
 ```shell
-docker run -d --name papertrail-api --env-file .env ghcr.io/eggy03/papertrail-api:latest-jvm
+docker run -d --name papertrail-api -p 9000:8080 --env-file .env ghcr.io/eggy03/papertrail-api:latest-jvm
 ```
+
+The API will now listen on http://localhost:9000.
 
 - Option 2: Building from source
 
