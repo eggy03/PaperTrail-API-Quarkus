@@ -7,11 +7,6 @@ API service for the PaperTrail Bot, built with Quarkus 3 and optimized for nativ
 > [!NOTE]
 > This part is only for users who have opted to self-host the bot and it's services.
 
-> [!TIP]
-> While not strictly necessary, you can deploy the service before deploying the
-> [bot](https://github.com/Egg-03/PaperTrailBot?tab=readme-ov-file#self-hosting-guide)
-> Doing so will make this service's URL available to the bot when being deployed.
-
 > [!WARNING]
 > This API does not implement authentication.
 > It is intended to run in a private network environment and should only be accessible by the bot service.
@@ -57,53 +52,53 @@ REDIS_URL=redis://localhost:6379
 
 ### Local
 
-- Clone the Repository
+- Option 1: Using pre-built images from GitHub Container Registry
+
+```shell
+# either jvm
+docker run -d --name papertrail-api -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-jvm
+# or native
+docker run -d --name papertrail-api -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-native
+```
+
+You can also use an `.env` file instead
+
+```shell
+docker run -d --name papertrail-api --env-file .env ghcr.io/eggy03/papertrail-api:latest-jvm
+```
+
+- Option 2: Building from source
 
 ```shell
 git clone https://github.com/eggy03/PaperTrail-API-Quarkus.git
 cd PaperTrail-API-Quarkus
 ```
 
-- Keep your `.env` file ready inside the locally cloned repository
-
-- Make sure docker is running and then choose either `Dockerfile.jvm` or `Dockerfile.native` for building
-
 ```shell
+#either jvm
 docker build -f Dockerfile.jvm -t papertrail-api .
-docker run -p <host_port>:8080 --env-file .env papertrail-api
-```
-
-The container listens on port 8080 by default.
-
-Example:
-
-```shell
+#or native
+docker build -f Dockerfile.native -t papertrail-api .
+#and then
 docker run -p 9000:8080 --env-file .env papertrail-api
 ```
-
 The API will now listen on http://localhost:9000.
-
-If you want to explicitly set the container port, you can use
-
-```shell
-docker run -e PORT=<container_port> -p <host_port>:<container_port> --env-file .env papertrail-api
-```
-
-Example:
-
-```shell
-docker run -e PORT=7070 -p 9000:7070 --env-file .env papertrail-api
-```
-
-The API will still be accessible on http://localhost:9000.
 
 ### Cloud Based
 
-You can also deploy on cloud platforms that support docker-based deploys via Dockerfile.
-The exact procedure varies, but it usually involves linking the repository, choosing the Dockerfile, and supplying the
-necessary environment variables.
+Many cloud platforms support Docker-based deployments directly from a repository.
 
-#### Choosing between JVM and Native
+Typically, the process involves:
+
+- Linking the repository
+- Selecting the `Dockerfile`
+- Supplying the required environment variables
+
+Alternatively, you can deploy using the pre-built container images found in the GitHub Container Registry
+
+This avoids building the image during deployment and can significantly speed up startup time.
+
+### Choosing between JVM and Native
 
 This project provides two Dockerfiles:
 
@@ -111,17 +106,10 @@ This project provides two Dockerfiles:
 - `Dockerfile.native` — Runs the service natively by building native binaries
 
 While native image allows for very low memory usage and very fast application startup times, compared to JVM mode,
-it's tradeoffs include very high time and resource consumption during the build stage.
+it's tradeoffs include very high build time and resource usage.
 
-Choose `Dockerfile.native` if:
-
-- You need very fast startup times
-- Your environment has limited memory
-
-Choose `Dockerfile.jvm` if:
-
-- You want fast builds
-- You are running on a VPS with plenty of memory (≥512MB recommended)
+If you are using pre-built images from the container registry, you are encouraged to use the native image,
+since the expensive build step has already been completed.
 
 # Health Check Endpoints
 
@@ -163,7 +151,7 @@ You only need to migrate your existing data from the default schema to the `pape
 
 This API is licensed under the [AGPLv3](/LICENSE) license.
 
-### What this means for you ?
+### What this means for you:
 
 - If you deploy this project **without modifying the source code**, you do not need to provide anything additional.
   The source code is already publicly available.
