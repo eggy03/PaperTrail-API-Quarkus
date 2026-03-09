@@ -22,5 +22,9 @@ WORKDIR /work
 # Copy the build files from the target folder in the build stage
 COPY --from=build /app/target/quarkus-app /work/quarkus-app
 
+# Install cURL
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
+USER 1001
 # quarkus defaults to prod
 ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "/work/quarkus-app/quarkus-run.jar"]
