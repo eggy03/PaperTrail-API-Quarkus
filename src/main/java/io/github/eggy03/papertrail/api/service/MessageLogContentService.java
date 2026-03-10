@@ -7,9 +7,7 @@ import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
-import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
-import io.quarkus.cache.CacheResult;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -46,7 +44,6 @@ public class MessageLogContentService {
     }
 
     @Transactional(Transactional.TxType.SUPPORTS)
-    @CacheResult(cacheName = "messageContent")
     public @NotNull MessageLogContentDTO getMessage(@NonNull @CacheKey Long messageId) {
 
         MessageLogContent entity = repository
@@ -57,7 +54,6 @@ public class MessageLogContentService {
     }
 
     @Transactional
-    @CacheInvalidate(cacheName = "messageContent")
     public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // this check is mostly redundant because the clients usually call view message before updating
@@ -74,7 +70,6 @@ public class MessageLogContentService {
     }
 
     @Transactional
-    @CacheInvalidate(cacheName = "messageContent")
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
         if (repository.deleteById(messageId))
