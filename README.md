@@ -4,9 +4,6 @@ API service for the PaperTrail Bot, built with Quarkus 3 and optimized for nativ
 
 # Self-Hosting Guide
 
-> [!NOTE]
-> This part is only for users who have opted to self-host the bot and it's services.
-
 > [!WARNING]
 > This API does not implement authentication.
 > It is intended to run in a private network environment and should only be accessible by the bot service.
@@ -65,6 +62,27 @@ You can also use an `.env` file instead
 
 ```shell
 docker run -d --name papertrail-api -p 9000:8080 --env-file .env ghcr.io/eggy03/papertrail-api:latest-jvm
+```
+
+Docker Compose Example:
+
+```yaml
+services:
+  papertrail-api:
+    container_name: papertrail-api
+    image: ghcr.io/eggy03/papertrail-api:latest-native
+    mem_limit: 512m
+    restart: unless-stopped
+    environment:
+      DB_URL: jdbc:postgresql://database:5432/papertrail
+      DB_USERNAME: defaultdb
+      DB_PASSWORD: ${DB_PASSWORD}
+      REDIS_URL: redis://default:${CACHE_PASSWORD}@cache:6379
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/q/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 ```
 
 The API will now listen on http://localhost:9000.
