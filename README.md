@@ -2,6 +2,14 @@
 
 API service for the PaperTrail Bot, built with Quarkus 3 and optimized for native image builds via GraalVM.
 
+# Status
+
+![Build and Tests](https://img.shields.io/github/actions/workflow/status/eggy03/PaperTrail-API-Quarkus/.github%2Fworkflows%2Fbuild_verify.yml?style=for-the-badge&label=BUILD)
+![Docker Images](https://img.shields.io/github/actions/workflow/status/eggy03/PaperTrail-API-Quarkus/.github%2Fworkflows%2Fpublish-docker-images.yml?style=for-the-badge&label=IMAGES)
+![Latest Tag](https://img.shields.io/github/v/tag/eggy03/PaperTrail-API-Quarkus?sort=semver&style=for-the-badge&label=LATEST%20TAG)
+![Latest Release](https://img.shields.io/github/v/release/eggy03/PaperTrail-API-Quarkus?sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE)
+
+
 # Self-Hosting Guide
 
 > [!WARNING]
