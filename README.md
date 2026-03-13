@@ -10,33 +10,34 @@ API service for the PaperTrail Bot, built with Quarkus 3 and optimized for nativ
 ![Latest Release](https://img.shields.io/github/v/release/eggy03/PaperTrail-API-Quarkus?sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE)
 ![GitHub commits since latest release](https://img.shields.io/github/commits-since/eggy03/PaperTrail-API-Quarkus/latest?sort=date&style=for-the-badge)
 
+# Self-Host (Auto Configuration)
 
-# Self-Hosting Guide
+Recommended for users who want to deploy a single instance of each of the required services
+locally or on a VPS with minimal setup.
+
+Follow the deployment guide in:
+[PaperTrail-Deployment Repository](https://github.com/eggy03/PaperTrail-Deployment?tab=readme-ov-file)
+
+# Self-Host (Manual Configuration)
+
+Recommended for users who want full control over the deployment process,
+prefer building from source, or are deploying to cloud platforms that support repository-based builds.
 
 > [!WARNING]
 > This API does not implement authentication.
 > It is intended to run in a private network environment and should only be accessible by the bot service.
 > Do not expose it publicly.
 
-## Step 1: Set Up Required Services & Get Required Secrets
+## 1: Set up the required services & environment variables
 
-### Services Required
+### Required Services
 
-| Service Type          | Supported Variants |
-|-----------------------|--------------------|
-| `Relational Database` | Postgres           |
-| `Distributed Cache`   | Redis / Valkey     |
+| Service Type          | Supported Variants        |
+|-----------------------|---------------------------|
+| `Relational Database` | PostgreSQL (v18+)         |
+| `Distributed Cache`   | Redis (v8+)/ Valkey (v9+) |
 
-It is recommended that you deploy the latest or the officially supported versions of Postgres and Redis or Valkey.
-At the time of development, Postgres 17 and 18 and Valkey 8 were fully supported.
-
-Below are the links to the official docs stating the support status of each of them:
-
-- [Postgres Supported Versions](https://www.postgresql.org/support/versioning/)
-- [Redis Supported Versions](https://redis.io/docs/latest/operate/rs/references/supported-platforms/)
-- [Valkey Supported Versions](https://valkey.io/topics/releases/)
-
-### Environment Variables Required
+### Required Environment Variables
 
 | Variable      | Description                                                 |
 |---------------|-------------------------------------------------------------|
@@ -54,54 +55,41 @@ DB_PASSWORD=yourpassword
 REDIS_URL=redis://localhost:6379
 ```
 
-## Step 2: Deployment Options
+## 2: Deploy the API service
 
-### Local
+This project provides two Dockerfiles for building:
 
-- Option 1: Using pre-built images from GitHub Container Registry
+- `Dockerfile.jvm` — Runs the service on JVM
+- `Dockerfile.native` — Runs the service natively by building native binaries
 
-```shell
-# either jvm
-docker run -d --name papertrail-api -p 9000:8080 -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-jvm
-# or native
-docker run -d --name papertrail-api -p 9000:8080 -e DB_URL="url" -e DB_USERNAME="uname" -e DB_PASSWORD="pwd" -e REDIS_URL="redisUrl" ghcr.io/eggy03/papertrail-api:latest-native
+While native image allows for very low memory usage and very fast application startup times, compared to JVM mode,
+it's tradeoffs include very high build time and resource usage. You can skip this by using the pre-built native images
+from the [GitHub Container Registry](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api).
+
+### Option A: Local Deployment
+
+#### Sub-Option A: Using pre-built images
+
+The GitHub Container Registry has the native build images for the API which you can use.
+Make sure you have the `.env` file containing the required secrets in the root of the folder
+you're executing the following command from.
+
+```bash
+docker run -d --name papertrail-api --env-file .env ghcr.io/eggy03/papertrail-api:latest
 ```
 
-You can also use an `.env` file instead
+#### Sub-Option B: Building from source
 
-```shell
-docker run -d --name papertrail-api -p 9000:8080 --env-file .env ghcr.io/eggy03/papertrail-api:latest-jvm
-```
-
-Docker Compose Example:
-
-```yaml
-services:
-  papertrail-api:
-    container_name: papertrail-api
-    image: ghcr.io/eggy03/papertrail-api:latest-native
-    mem_limit: 512m
-    restart: unless-stopped
-    environment:
-      DB_URL: jdbc:postgresql://database:5432/papertrail
-      DB_USERNAME: defaultdb
-      DB_PASSWORD: ${DB_PASSWORD}
-      REDIS_URL: redis://default:${CACHE_PASSWORD}@cache:6379
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/q/health" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-```
-
-The API will now listen on http://localhost:9000.
-
-- Option 2: Building from source
+Step 1: Clone the Repository
 
 ```shell
 git clone https://github.com/eggy03/PaperTrail-API-Quarkus.git
 cd PaperTrail-API-Quarkus
 ```
+
+Step 2: Copy your created `.env` file to the repository root
+
+Step 3: Choose your Dockerfile and then build and run
 
 ```shell
 #either jvm
@@ -109,11 +97,23 @@ docker build -f Dockerfile.jvm -t papertrail-api .
 #or native
 docker build -f Dockerfile.native -t papertrail-api .
 #and then
-docker run -p 9000:8080 --env-file .env papertrail-api
+docker run --env-file .env papertrail-api
 ```
-The API will now listen on http://localhost:9000.
 
-### Cloud Based
+> [!NOTE]
+>
+> While the above sub-options use `--env-file .env` for examples, you can also pass environment variables directly
+> via `docker -e KEY:"VALUE"`
+>
+> In both the sub-options, the API uses the default port 8080 of the container. This can be overridden by providing
+> the environment variable `PORT=<port>`.
+>
+> It's also worth noting that in both the sub-options, the container port has not been mapped to the host port because
+> the API is intended to be used only by the Bot service.
+>
+> If you need to expose it to your host machine, you can map it via `docker -p <host_port>:<container_port>`
+
+### Option B: Cloud Deployment
 
 Many cloud platforms support Docker-based deployments directly from a repository.
 
@@ -123,36 +123,16 @@ Typically, the process involves:
 - Selecting the `Dockerfile`
 - Supplying the required environment variables
 
-Alternatively, you can deploy using the pre-built container images found in the GitHub Container Registry
-
-This avoids building the image during deployment and can significantly speed up startup time.
-
-### Choosing between JVM and Native
-
-This project provides two Dockerfiles:
-
-- `Dockerfile.jvm` — Runs the service on JVM
-- `Dockerfile.native` — Runs the service natively by building native binaries
-
-While native image allows for very low memory usage and very fast application startup times, compared to JVM mode,
-it's tradeoffs include very high build time and resource usage.
-
-If you are using pre-built images from the container registry, you are encouraged to use the native image,
-since the expensive build step has already been completed.
+Alternatively, you can deploy using the pre-built container images found in the GitHub Container Registry, if suported.
 
 # Health Check Endpoints
 
-The service exposes three major health check endpoints that determine the status of the service.
-
-> /q/health/live - The application is up and running.
->
-> /q/health/ready - The application is ready to serve requests.
->
-> /q/health/started - The application is started.
-
-Some cloud platforms may require these endpoints to periodically determine the health of your deployed service.
-
-> /q/health - Accumulates all health check procedures in the application.
+| Endpoint            | Description                            |
+|---------------------|----------------------------------------|
+| `/q/health/live`    | Application is running                 |
+| `/q/health/ready`   | Application is ready to serve requests |
+| `/q/health/started` | Application startup has completed      |
+| `/q/health`         | Aggregated health status               |
 
 # Migration Guide
 
