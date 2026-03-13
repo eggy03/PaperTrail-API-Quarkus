@@ -68,17 +68,20 @@ from the [GitHub Container Registry](https://github.com/eggy03/PaperTrail-API-Qu
 
 ### Option A: Local Deployment
 
-#### Sub-Option A: Using pre-built images
+<ins>Using Pre-Built Images</ins>
 
 The GitHub Container Registry has the native build images for the API which you can use.
+
 Make sure you have the `.env` file containing the required secrets in the root of the folder
-you're executing the following command from.
+you're executing the following commands from.
 
 ```bash
 docker run -d --name papertrail-api --env-file .env ghcr.io/eggy03/papertrail-api:latest
 ```
 
-#### Sub-Option B: Building from source
+<ins>Building From Source</ins>
+
+Alternatively, you can use the provided Dockerfiles to build from source:
 
 Step 1: Clone the Repository
 
