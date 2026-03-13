@@ -39,20 +39,20 @@ prefer building from source, or are deploying to cloud platforms that support re
 
 ### Required Environment Variables
 
-| Variable      | Description                                                 |
-|---------------|-------------------------------------------------------------|
-| `DB_URL`      | Example: `jdbc:postgresql://<host>:<port>/<database>`       |
-| `DB_USERNAME` | Database username                                           |
-| `DB_PASSWORD` | Database password                                           |
-| `REDIS_URL`   | Example: `redis://<host>:<port>`                            |
+| Variable      | Description                                            |
+|---------------|--------------------------------------------------------|
+| `DB_URL`      | Example: `jdbc:postgresql://<host>:<port>/<database>`  |
+| `DB_USERNAME` | Database username                                      |
+| `DB_PASSWORD` | Database password                                      |
+| `REDIS_URL`   | Example: `redis://<username>:<password>@<host>:<port>` |
 
 Example `.env`
 
 ```dotenv
-DB_URL=jdbc:postgresql://localhost:5432/papertrail
+DB_URL=jdbc:postgresql://database:5432/papertrail
 DB_USERNAME=postgres
 DB_PASSWORD=yourpassword
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://default:password@cache:6379
 ```
 
 ## 2: Deploy the API service
