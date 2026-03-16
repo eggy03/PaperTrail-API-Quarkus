@@ -9,23 +9,23 @@ COPY .mvn .mvn
 
 # Set execution permission for the Maven wrapper
 RUN chmod +x ./mvnw
-RUN ./mvnw dependency:go-offline
+RUN ./mvnw -B -e -DskipTests dependency:go-offline
 
 # Copy the source files after dependencies are cached
 COPY src ./src
 
 # Build native binary
 # quarkus defaults to prod
-RUN ./mvnw clean package -DskipTests -Dnative "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
-
+RUN ./mvnw -B -e clean package -DskipTests -Dnative \
+    "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
 
 # ---------- Stage 2: Minimal Runtime ----------
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.6
-WORKDIR /work/
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7
+RUN useradd -r -m papertrail
+WORKDIR /app
 
 # Copy the compiled binary
-COPY --from=build /native-build/target/*-runner /work/application
+COPY --from=build /native-build/target/*-runner /app/application
 
-USER 1001
-
+USER papertrail
 ENTRYPOINT ["./application"]
