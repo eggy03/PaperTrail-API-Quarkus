@@ -4,7 +4,7 @@
 
     <groupId>io.github.eggy03</groupId>
     <artifactId>papertrail-api-quarkus</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <packaging>quarkus</packaging>
 
     <properties>
@@ -14,11 +14,11 @@
 
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.32.3</quarkus.platform.version>
+        <quarkus.platform.version>3.34.1</quarkus.platform.version>
         <skipITs>true</skipITs>
 
-        <compiler-plugin.version>3.14.1</compiler-plugin.version>
-        <surefire-plugin.version>3.5.4</surefire-plugin.version>
+        <compiler-plugin.version>3.15.0</compiler-plugin.version>
+        <surefire-plugin.version>3.5.5</surefire-plugin.version>
 
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <commons.lang3.version>3.20.0</commons.lang3.version>
