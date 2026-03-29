@@ -162,22 +162,9 @@ You only need to migrate your existing data from the default schema to the `pape
 # License
 
 This API is licensed under the [AGPLv3](/LICENSE) license.
-
-### What this means for you:
-
-- If you deploy this project **without modifying the source code**, you do not need to provide anything additional.
-  The source code is already publicly available.
-
-- If you **modify the source code** and run it as a service where users interact with it over a network,
-  you must make the complete corresponding source code of your modified version available to those users.
-  You are not required to publish it publicly.
-
-- You may modify, redistribute, rebrand, and monetize the project. However:
-  - Your version must remain licensed under AGPLv3.
-  - You must preserve copyright notices and the original license.
-  - You must clearly state any changes you have made.
-
-- This software is provided without warranty, as described in AGPLv3.
+Read this
+easy-to-understand [Medium](https://medium.com/swlh/understanding-the-agpl-the-most-misunderstood-license-86fd1fe91275)
+article about AGPLv3 and it's scope.
 
 # Help
 
