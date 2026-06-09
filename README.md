@@ -5,10 +5,7 @@ API service for the PaperTrail Bot, built with Quarkus 3 and optimized for nativ
 # Status
 
 ![Build and Tests](https://img.shields.io/github/actions/workflow/status/eggy03/PaperTrail-API-Quarkus/.github%2Fworkflows%2Fbuild_verify.yml?style=for-the-badge&label=BUILD)
-![Docker Images](https://img.shields.io/github/actions/workflow/status/eggy03/PaperTrail-API-Quarkus/.github%2Fworkflows%2Fpublish-docker-images.yml?style=for-the-badge&label=IMAGES)
-![Latest Tag](https://img.shields.io/github/v/tag/eggy03/PaperTrail-API-Quarkus?sort=semver&style=for-the-badge&label=LATEST%20TAG)
 ![Latest Release](https://img.shields.io/github/v/release/eggy03/PaperTrail-API-Quarkus?sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/eggy03/PaperTrail-API-Quarkus/latest?sort=date&style=for-the-badge)
 
 # Self-Host (Auto Configuration)
 
@@ -28,16 +25,14 @@ prefer building from source, or are deploying to cloud platforms that support re
 > It is intended to run in a private network environment and should only be accessible by the bot service.
 > Do not expose it publicly.
 
-## 1: Set up the required services & environment variables
-
-### Required Services
+## Step 1: Set up the required services
 
 | Service Type          | Supported Variants        |
 |-----------------------|---------------------------|
-| `Relational Database` | PostgreSQL (v18+)         |
+| `Relational Database` | PostgreSQL (v17+)         |
 | `Distributed Cache`   | Redis (v8+)/ Valkey (v9+) |
 
-### Required Environment Variables
+## Step 2: Set up the required environment variables
 
 | Variable      | Description                                            |
 |---------------|--------------------------------------------------------|
@@ -46,87 +41,86 @@ prefer building from source, or are deploying to cloud platforms that support re
 | `DB_PASSWORD` | Database password                                      |
 | `REDIS_URL`   | Example: `redis://<username>:<password>@<host>:<port>` |
 
-Example `.env`
+See example : `.env.example` in project root
 
-```dotenv
-DB_URL=jdbc:postgresql://database:5432/papertrail
-DB_USERNAME=postgres
-DB_PASSWORD=yourpassword
-REDIS_URL=redis://default:password@cache:6379
-```
+## Step 3: Deploy the API service
 
-## 2: Deploy the API service
+The base URL you get after deploying the service will be required by the bot service.
 
-This project provides two Dockerfiles for building:
+#### Option A : Deploy Using Pre-Built Docker Images
 
-- `Dockerfile.jvm` — Runs the service on JVM
-- `Dockerfile.native` — Runs the service natively by building native binaries
+The GitHub Container Registry
+has pre-built docker images for both JVM and Native versions the API service which you can use.
 
-While native image allows for very low memory usage and very fast application startup times, compared to JVM mode,
-it's tradeoffs include very high build time and resource usage. You can skip this by using the pre-built native images
-from the [GitHub Container Registry](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api).
+[Container Registry for JVM Edition](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api)
 
-### Option A: Local Deployment
+[Container Registry for Native Edition](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api-native)
 
-<ins>Using Pre-Built Images</ins>
-
-The GitHub Container Registry has the native build images for the API which you can use.
+You may choose either one.
 
 Make sure you have the `.env` file containing the required secrets in the root of the folder
-you're executing the following commands from.
+you're executing the following commands from:
 
 ```bash
+# JVM
 docker run -d --name papertrail-api --env-file .env ghcr.io/eggy03/papertrail-api:latest
 ```
 
-<ins>Building From Source</ins>
+```bash
+# Native
+docker run -d --name papertrail-api-native --env-file .env ghcr.io/eggy03/papertrail-api-native:latest
+```
 
-Alternatively, you can use the provided Dockerfiles to build from source:
+#### Option B : Building From Source With Docker
 
-Step 1: Clone the Repository
-
-```shell
+```bash
 git clone https://github.com/eggy03/PaperTrail-API-Quarkus.git
 cd PaperTrail-API-Quarkus
 ```
 
-Step 2: Copy your created `.env` file to the repository root
-
-Step 3: Choose your Dockerfile and then build and run
-
-```shell
-#either jvm
-docker build -f Dockerfile.jvm -t papertrail-api .
-#or native
-docker build -f Dockerfile.native -t papertrail-api .
-#and then
-docker run --env-file .env papertrail-api
+```bash
+# JVM
+docker build -f -t papertrail-api .
+docker run -d --name papertrail-api --env-file .env papertrail-api
 ```
 
+```bash
+# Native
+docker build -f Dockerfile.native -t papertrail-api-native .
+docker run -d --name papertrail-api-native --env-file .env papertrail-api-native
+```
 > [!NOTE]
 >
 > While the above sub-options use `--env-file .env` for examples, you can also pass environment variables directly
 > via `docker -e KEY:"VALUE"`
->
-> In both the sub-options, the API uses the default port 8080 of the container. This can be overridden by providing
-> the environment variable `PORT=<port>`.
->
-> It's also worth noting that in both the sub-options, the container port has not been mapped to the host port because
-> the API is intended to be used only by the Bot service.
->
-> If you need to expose it to your host machine, you can map it via `docker -p <host_port>:<container_port>`
 
-### Option B: Cloud Deployment
+#### Option C : Building From Source Without Docker
 
-Many cloud platforms support Docker-based deployments directly from a repository.
+```bash
+git clone https://github.com/eggy03/PaperTrailBot.git
+cd PaperTrailBot
+```
 
-Typically, the process involves:
+```bash
+# JVM
+./mvnw clean package
+java -jar target/quarkus-app/quarkus-run.jar
+```
 
-- Linking the repository
-- Selecting the `Dockerfile`
-- Supplying the required environment variables
+```bash
+# Native
+./mvnw clean package -Dnative
+```
 
-Alternatively, you can deploy using the pre-built container images found in the GitHub Container Registry, if suported.
+The built application will be found in the `target` folder of the project.
+
+#### Option D : Cloud Deployment
+
+If your cloud supports building from Dockerfile, point the source towards `Dockerfile` (for JVM Build)
+or `Dockerfile.native` (for Native Build), found in the project's root.
+
+If your cloud supports using pre-built docker images, you can find the image links in
+the container registry.
 
 # Health Check Endpoints
 
@@ -162,9 +156,6 @@ You only need to migrate your existing data from the default schema to the `pape
 # License
 
 This API is licensed under the [AGPLv3](/LICENSE) license.
-Read this
-easy-to-understand [Medium](https://medium.com/swlh/understanding-the-agpl-the-most-misunderstood-license-86fd1fe91275)
-article about AGPLv3 and it's scope.
 
 # Help
 
