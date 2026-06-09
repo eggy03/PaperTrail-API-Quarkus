@@ -49,6 +49,10 @@ The base URL you get after deploying the service will be required by the bot ser
 
 #### Option A : Deploy Using Pre-Built Docker Images
 
+> [!NOTE]
+> Starting v1.1.4 `ghcr.io/eggy03/papertrail-api:latest` will contain the JVM build
+> and `ghcr.io/eggy03/papertrail-api-native:latest` will contain the Native image
+
 The GitHub Container Registry
 has pre-built docker images for both JVM and Native versions the API service which you can use.
 
