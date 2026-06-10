@@ -86,11 +86,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-redis-client</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson-quarkus-33</artifactId>
-            <version>${redisson.quarkus.version}</version>
-        </dependency>
 
         <!--DB Migration-->
         <dependency>
@@ -156,14 +151,6 @@
             <artifactId>assertj-core</artifactId>
             <version>${assertj.core.version}</version>
             <scope>test</scope>
-        </dependency>
-
-        <!--custom fixes-->
-        <dependency> <!--Redisson 4.4.0+ native image build fails without this-->
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-classes-io_uring</artifactId>
-            <version>4.2.13.Final</version>
-            <scope>compile</scope>
         </dependency>
     </dependencies>
 
