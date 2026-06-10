@@ -15,6 +15,7 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.eclipse.microprofile.faulttolerance.Retry;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.OffsetDateTime;
@@ -54,6 +55,7 @@ public class MessageLogContentService {
     }
 
     @Transactional
+    @Retry(retryOn = MessageNotFoundException.class, maxRetries = 5, delay = 100)
     public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // this check is mostly redundant because the clients usually call view message before updating
@@ -70,6 +72,7 @@ public class MessageLogContentService {
     }
 
     @Transactional
+    @Retry(retryOn = MessageNotFoundException.class, delay = 100)
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
         if (repository.deleteById(messageId))

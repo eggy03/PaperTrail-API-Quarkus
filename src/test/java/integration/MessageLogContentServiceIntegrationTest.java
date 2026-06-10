@@ -41,7 +41,7 @@ class MessageLogContentServiceIntegrationTest {
     static final Long NEGATIVE_TEST_AUTHOR_ID = -1302148573926148097L;
 
     // prep a valid Entity
-    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null);
+    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null, null);
     // prep a valid DTO
     final MessageLogContentDTO validDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
 

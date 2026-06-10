@@ -1,7 +1,7 @@
 package io.github.eggy03.papertrail.api.controller;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.service.locks.MessageLogContentOperation;
+import io.github.eggy03.papertrail.api.service.MessageLogContentService;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class MessageLogContentController {
 
-    private final MessageLogContentOperation service;
+    private final MessageLogContentService service;
 
     @POST
     public Response saveMessage(@Valid MessageLogContentDTO dto) {
