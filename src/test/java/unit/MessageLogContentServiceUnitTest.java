@@ -33,7 +33,7 @@ class MessageLogContentServiceUnitTest {
     static final String TEST_MESSAGE_CONTENT = "message";
     static final Long TEST_AUTHOR_ID = 1302148573926148097L;
     // prep a valid Entity
-    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null);
+    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null, null);
     // prep a valid DTO
     final MessageLogContentDTO validDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
     @Mock
@@ -96,7 +96,7 @@ class MessageLogContentServiceUnitTest {
     @Test
     void updateMessage_success() {
 
-        MessageLogContent oldEntity = new MessageLogContent(TEST_MESSAGE_ID, "oldMessage", 123L, null);
+        MessageLogContent oldEntity = new MessageLogContent(TEST_MESSAGE_ID, "oldMessage", 123L, null, null);
         when(repository.findByIdOptional(TEST_MESSAGE_ID)).thenReturn(Optional.of(oldEntity));
 
         service.updateMessage(TEST_MESSAGE_ID, validDTO);
