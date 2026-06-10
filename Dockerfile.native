@@ -16,8 +16,7 @@ COPY src ./src
 
 # Build native binary
 # quarkus defaults to prod
-RUN ./mvnw -B -e clean package -DskipTests -Dnative \
-    "-Dquarkus.native.additional-build-args=-J-Djava.net.preferIPv4Stack=true"
+RUN ./mvnw -B -e clean package -DskipTests -Dnative
 
 # ---------- Stage 2: Minimal Runtime ----------
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7
