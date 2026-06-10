@@ -47,6 +47,9 @@ See example : `.env.example` in project root
 
 The base URL you get after deploying the service will be required by the bot service.
 
+By default, the service will listen at port 8080. You can change this by supplying a custom value
+in env variable `PORT`.
+
 #### Option A : Deploy Using Pre-Built Docker Images
 
 > [!NOTE]
@@ -134,6 +137,9 @@ the container registry.
 | `/q/health/ready`   | Application is ready to serve requests |
 | `/q/health/started` | Application startup has completed      |
 | `/q/health`         | Aggregated health status               |
+
+By default, the health check interface will listen to port 9000. You can change this by supplying a custom value
+in env variable `MANAGEMENT_PORT`.
 
 # Migration Guide
 
