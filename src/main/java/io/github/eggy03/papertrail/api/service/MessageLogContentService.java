@@ -6,11 +6,14 @@ import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
 import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
+import io.github.eggy03.papertrail.api.service.interfaces.MessageLogContentServiceInterface;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheKey;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.persistence.LockTimeoutException;
+import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +27,12 @@ import java.time.ZoneOffset;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class MessageLogContentService {
+public final class MessageLogContentService implements MessageLogContentServiceInterface {
 
     private final MessageLogContentRepository repository;
     private final MessageLogContentMapper mapper;
 
+    @Override
     @Transactional
     public @NotNull MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
 
@@ -44,6 +48,7 @@ public class MessageLogContentService {
         // So realistically, only PK/UK constraint issues will be propagated from here
     }
 
+    @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     public @NotNull MessageLogContentDTO getMessage(@NonNull @CacheKey Long messageId) {
 
@@ -54,8 +59,9 @@ public class MessageLogContentService {
         return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
-    @Retry(retryOn = MessageNotFoundException.class, maxRetries = 5, delay = 100)
+    @Retry(retryOn = {OptimisticLockException.class, LockTimeoutException.class})
     public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // this check is mostly redundant because the clients usually call view message before updating
@@ -68,11 +74,11 @@ public class MessageLogContentService {
         entity.setAuthorId(updatedDto.getAuthorId());
 
         log.debug("{}Updated message content having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
-        return updatedDto;
+        return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
-    @Retry(retryOn = MessageNotFoundException.class, delay = 100)
     public void deleteMessage(@NonNull @CacheKey Long messageId) {
 
         if (repository.deleteById(messageId))

@@ -6,6 +6,7 @@ import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
 import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureException;
 import io.github.eggy03.papertrail.api.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.AuditLogRegistrationRepository;
+import io.github.eggy03.papertrail.api.service.interfaces.AuditLogRegistrationServiceInterface;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
@@ -21,11 +22,12 @@ import org.hibernate.exception.ConstraintViolationException;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class AuditLogRegistrationService {
+public final class AuditLogRegistrationService implements AuditLogRegistrationServiceInterface {
 
     private final AuditLogRegistrationRepository repository;
     private final AuditLogRegistrationMapper mapper;
 
+    @Override
     @Transactional
     public @NotNull AuditLogRegistrationDTO registerGuild(@NonNull AuditLogRegistrationDTO dto) {
 
@@ -38,6 +40,7 @@ public class AuditLogRegistrationService {
         }
     }
 
+    @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "auditLog")
     public @NotNull AuditLogRegistrationDTO viewRegisteredGuild(@NonNull @CacheKey Long guildId) {
@@ -49,6 +52,7 @@ public class AuditLogRegistrationService {
         return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
     @CacheInvalidate(cacheName = "auditLog")
     public @NotNull AuditLogRegistrationDTO updateRegisteredGuild(@NonNull @CacheKey Long guildId, @NonNull AuditLogRegistrationDTO updatedDto) {
@@ -61,9 +65,10 @@ public class AuditLogRegistrationService {
         entity.setChannelId(updatedDto.getChannelId());
 
         log.debug("{}Updated audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
-        return updatedDto;
+        return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
     @CacheInvalidate(cacheName = "auditLog")
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {

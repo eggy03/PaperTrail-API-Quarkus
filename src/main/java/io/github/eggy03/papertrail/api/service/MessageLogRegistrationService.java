@@ -6,6 +6,7 @@ import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
 import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogRegistrationRepository;
+import io.github.eggy03.papertrail.api.service.interfaces.MessageLogRegistrationServiceInterface;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
@@ -21,11 +22,12 @@ import org.hibernate.exception.ConstraintViolationException;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public class MessageLogRegistrationService {
+public final class MessageLogRegistrationService implements MessageLogRegistrationServiceInterface {
 
     private final MessageLogRegistrationRepository repository;
     private final MessageLogRegistrationMapper mapper;
 
+    @Override
     @Transactional
     public @NotNull MessageLogRegistrationDTO registerGuild(@NonNull MessageLogRegistrationDTO dto) {
 
@@ -38,6 +40,7 @@ public class MessageLogRegistrationService {
         }
     }
 
+    @Override
     @Transactional(Transactional.TxType.SUPPORTS)
     @CacheResult(cacheName = "messageLog")
     public @NotNull MessageLogRegistrationDTO viewRegisteredGuild(@NonNull @CacheKey Long guildId) {
@@ -49,6 +52,7 @@ public class MessageLogRegistrationService {
         return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
     @CacheInvalidate(cacheName = "messageLog")
     public @NotNull MessageLogRegistrationDTO updateRegisteredGuild(@NonNull @CacheKey Long guildId, @NonNull MessageLogRegistrationDTO updatedDto) {
@@ -61,9 +65,10 @@ public class MessageLogRegistrationService {
         entity.setChannelId(updatedDto.getChannelId());
 
         log.debug("{}Updated message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
-        return updatedDto;
+        return mapper.toDTO(entity);
     }
 
+    @Override
     @Transactional
     @CacheInvalidate(cacheName = "messageLog")
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
