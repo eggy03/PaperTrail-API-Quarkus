@@ -8,17 +8,13 @@ import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.MessageLogContentServiceInterface;
 import io.github.eggy03.papertrail.api.util.AnsiColor;
-import io.quarkus.cache.CacheKey;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.persistence.LockTimeoutException;
-import jakarta.persistence.OptimisticLockException;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.microprofile.faulttolerance.Retry;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.OffsetDateTime;
@@ -50,7 +46,7 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
-    public @NotNull MessageLogContentDTO getMessage(@NonNull @CacheKey Long messageId) {
+    public @NotNull MessageLogContentDTO getMessage(@NonNull Long messageId) {
 
         MessageLogContent entity = repository
                 .findByIdOptional(messageId)
@@ -61,8 +57,7 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
     @Override
     @Transactional
-    @Retry(retryOn = {OptimisticLockException.class, LockTimeoutException.class})
-    public @NotNull MessageLogContentDTO updateMessage(@NonNull @CacheKey Long messageId, @NonNull MessageLogContentDTO updatedDto) {
+    public @NotNull MessageLogContentDTO updateMessage(@NonNull Long messageId, @NonNull MessageLogContentDTO updatedDto) {
 
         // this check is mostly redundant because the clients usually call view message before updating
         MessageLogContent entity = repository
@@ -79,7 +74,7 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
     @Override
     @Transactional
-    public void deleteMessage(@NonNull @CacheKey Long messageId) {
+    public void deleteMessage(@NonNull Long messageId) {
 
         if (repository.deleteById(messageId))
             log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
