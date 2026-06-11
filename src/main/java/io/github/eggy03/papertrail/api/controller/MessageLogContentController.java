@@ -2,6 +2,7 @@ package io.github.eggy03.papertrail.api.controller;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
 import io.github.eggy03.papertrail.api.service.MessageLogContentService;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -21,13 +22,14 @@ import lombok.RequiredArgsConstructor;
 @Path("/api/v1/content/message")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RunOnVirtualThread
 @RequiredArgsConstructor
 public class MessageLogContentController {
 
     private final MessageLogContentService service;
 
     @POST
+    @Blocking
+    @RunOnVirtualThread
     public Response saveMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
@@ -37,6 +39,8 @@ public class MessageLogContentController {
 
     @GET
     @Path("/{messageId}")
+    @Blocking
+    @RunOnVirtualThread
     public Response getMessage(@PathParam("messageId") @Positive @NotNull Long messageId) {
         return Response
                 .ok(service.getMessage(messageId))
@@ -44,6 +48,8 @@ public class MessageLogContentController {
     }
 
     @PUT
+    @Blocking
+    @RunOnVirtualThread
     public Response updateMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .ok(service.updateMessage(dto.getMessageId(), dto))
@@ -52,6 +58,8 @@ public class MessageLogContentController {
 
     @DELETE
     @Path("/{messageId}")
+    @Blocking
+    @RunOnVirtualThread
     public Response deleteMessage(@PathParam("messageId") @Positive @NotNull Long messageId) {
         service.deleteMessage(messageId);
         return Response.noContent().build();
