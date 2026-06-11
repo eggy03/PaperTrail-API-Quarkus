@@ -24,4 +24,4 @@ WORKDIR /app
 COPY --from=build /jvm-build/target/quarkus-app /app/quarkus-app
 USER papertrail
 # quarkus defaults to prod
-ENTRYPOINT ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "/work/quarkus-app/quarkus-run.jar"]
+ENTRYPOINT ["java", "-jar", "/app/quarkus-app/quarkus-run.jar"]
