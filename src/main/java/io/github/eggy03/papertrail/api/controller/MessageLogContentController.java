@@ -1,7 +1,6 @@
 package io.github.eggy03.papertrail.api.controller;
 
 import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
 import io.github.eggy03.papertrail.api.service.MessageLogContentService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
@@ -53,7 +52,7 @@ public class MessageLogContentController {
     @PUT
     @Blocking
     @RunOnVirtualThread
-    @Retry(retryOn = {OptimisticLockException.class, MessageNotFoundException.class}, delay = 100)
+    @Retry(retryOn = OptimisticLockException.class)
     public Response updateMessage(@Valid MessageLogContentDTO dto) {
         return Response
                 .ok(service.updateMessage(dto.getMessageId(), dto))
