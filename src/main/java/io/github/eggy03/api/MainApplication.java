@@ -1,4 +1,4 @@
-package io.github.eggy03.papertrail.api;
+package io.github.eggy03.api;
 
 import io.quarkus.runtime.Quarkus;
 import io.quarkus.runtime.annotations.QuarkusMain;
