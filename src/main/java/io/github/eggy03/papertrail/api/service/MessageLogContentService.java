@@ -7,7 +7,6 @@ import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.MessageLogContentServiceInterface;
-import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -34,9 +33,10 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            log.debug("{}Saved message with ID={}{}", AnsiColor.GREEN, dto.getMessageId(), AnsiColor.RESET);
+            log.info("Message Save Succeeded for [MessageID: {}, AuthorID: {}], having [Content: {}]", dto.getMessageId(), dto.getAuthorId(), dto.getMessageContent());
             return dto;
         } catch (ConstraintViolationException e) {// from hibernate
+            log.info("Message Save Failed for [MessageID: {}, AuthorID: {}], having [Content: {}] with [REASON: {}]", dto.getMessageId(), dto.getAuthorId(), dto.getMessageContent(), e.getMessage());
             throw new MessageSaveFailureException(e);
         }
         // API Note: While ConstraintViolationException covers for a lot of constraints other than PK constraint
@@ -64,11 +64,23 @@ public final class MessageLogContentService implements MessageLogContentServiceI
                 .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message to be updated was never saved"));
 
+        log.info(
+                """
+                        Message update queued for [MessageID: {}]
+                        [Old Message Content: {}, Old AuthorID: {}]
+                        [New Message Content: {}, New AuthorID: {}]
+                        """,
+                messageId,
+                entity.getMessageContent(),
+                entity.getAuthorId(),
+                updatedDto.getMessageContent(),
+                updatedDto.getAuthorId()
+        );
+
         // quarkus will automatically detect changes to this entity and update the database
         entity.setMessageContent(updatedDto.getMessageContent());
         entity.setAuthorId(updatedDto.getAuthorId());
 
-        log.debug("{}Updated message content having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
         return mapper.toDTO(entity);
     }
 
@@ -77,9 +89,11 @@ public final class MessageLogContentService implements MessageLogContentServiceI
     public void deleteMessage(@NonNull Long messageId) {
 
         if (repository.deleteById(messageId))
-            log.debug("{} Deleted message having ID={}{}", AnsiColor.GREEN, messageId, AnsiColor.RESET);
-        else
+            log.info("Message Deletion Succeeded for [MessageID: {}]", messageId);
+        else {
+            log.info("Message Deletion Failed for [MessageID: {}] with [Reason: Message was not saved before]", messageId);
             throw new MessageNotFoundException("Message to be deleted was never saved");
+        }
     }
 
     @Scheduled(every = "24h")
@@ -87,6 +101,6 @@ public final class MessageLogContentService implements MessageLogContentServiceI
     public void cleanupMessages() {
         OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
         long deletedMessageCount = repository.deleteOlderThan(cutoff);
-        log.info("{}Message Content Cleanup Service- Cleaned up {} messages older than {}{}", AnsiColor.GREEN, deletedMessageCount, cutoff, AnsiColor.RESET);
+        log.info("Message Content Cleanup Service- Cleaned up {} messages older than {}", deletedMessageCount, cutoff);
     }
 }

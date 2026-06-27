@@ -7,7 +7,6 @@ import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureExcept
 import io.github.eggy03.papertrail.api.mapper.AuditLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.AuditLogRegistrationRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.AuditLogRegistrationServiceInterface;
-import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
 import io.quarkus.cache.CacheResult;
@@ -33,9 +32,10 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            log.debug("{}Saved audit log guild with ID={}{}", AnsiColor.GREEN, dto.getGuildId(), AnsiColor.RESET);
+            log.info("Audit Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
             return dto;
         } catch (ConstraintViolationException e) { // from hibernate
+            log.info("Audit Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
             throw new GuildRegistrationFailureException(e);
         }
     }
@@ -60,11 +60,13 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
         // dirty checking
         AuditLogRegistration entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
+                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
+
+        log.info("Audit Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
+                entity.getGuildId(), entity.getChannelId(), updatedDto.getChannelId()
+        );
 
         entity.setChannelId(updatedDto.getChannelId());
-
-        log.debug("{}Updated audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         return mapper.toDTO(entity);
     }
 
@@ -74,8 +76,11 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         if (repository.deleteById(guildId))
-            log.debug("{}Deleted audit log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
-        else
+            log.info("Audit Log Registration Removal Succeeded for [Guild: {}]", guildId);
+        else {
+            log.info("Audit Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for audit logging]", guildId);
             throw new GuildNotFoundException("Guild is not registered for audit logging");
+        }
+
     }
 }
