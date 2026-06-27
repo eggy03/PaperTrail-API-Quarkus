@@ -64,17 +64,8 @@ public final class MessageLogContentService implements MessageLogContentServiceI
                 .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message to be updated was never saved"));
 
-        log.info(
-                """
-                        Message update queued for [MessageID: {}]
-                        [Old Message Content: {}, Old AuthorID: {}]
-                        [New Message Content: {}, New AuthorID: {}]
-                        """,
-                messageId,
-                entity.getMessageContent(),
-                entity.getAuthorId(),
-                updatedDto.getMessageContent(),
-                updatedDto.getAuthorId()
+        log.info("Message update queued for [MessageID: {}][Old Message Content: {}, Old AuthorID: {}][New Message Content: {}, New AuthorID: {}]",
+                messageId, entity.getMessageContent(), entity.getAuthorId(), updatedDto.getMessageContent(), updatedDto.getAuthorId()
         );
 
         // quarkus will automatically detect changes to this entity and update the database
