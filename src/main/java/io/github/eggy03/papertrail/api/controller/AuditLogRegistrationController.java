@@ -3,7 +3,6 @@ package io.github.eggy03.papertrail.api.controller;
 import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.service.AuditLogRegistrationService;
 import io.smallrye.common.annotation.Blocking;
-import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -29,7 +28,6 @@ public class AuditLogRegistrationController {
 
     @POST
     @Blocking
-    @RunOnVirtualThread
     public Response registerGuild(@Valid AuditLogRegistrationDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
@@ -40,7 +38,6 @@ public class AuditLogRegistrationController {
     @GET
     @Path("/{guildId}")
     @Blocking
-    @RunOnVirtualThread
     public Response getGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         return Response
                 .ok(service.viewRegisteredGuild(guildId))
@@ -49,7 +46,6 @@ public class AuditLogRegistrationController {
 
     @PUT
     @Blocking
-    @RunOnVirtualThread
     public Response updateGuild(@Valid AuditLogRegistrationDTO dto) {
         return Response
                 .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
@@ -59,7 +55,6 @@ public class AuditLogRegistrationController {
     @DELETE
     @Path("/{guildId}")
     @Blocking
-    @RunOnVirtualThread
     public Response deleteGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         service.deleteRegisteredGuild(guildId);
         return Response.noContent().build();
