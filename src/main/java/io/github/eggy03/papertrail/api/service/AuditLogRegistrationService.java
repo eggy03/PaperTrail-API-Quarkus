@@ -32,10 +32,10 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            log.info("Audit Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
+            log.debug("Audit Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
             return dto;
         } catch (ConstraintViolationException e) { // from hibernate
-            log.info("Audit Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
+            log.debug("Audit Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
             throw new GuildRegistrationFailureException(e);
         }
     }
@@ -62,7 +62,7 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
                 .findByIdOptional(guildId)
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered for audit logging"));
 
-        log.info("Audit Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
+        log.debug("Audit Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
                 entity.getGuildId(), entity.getChannelId(), updatedDto.getChannelId()
         );
 
@@ -76,9 +76,9 @@ public final class AuditLogRegistrationService implements AuditLogRegistrationSe
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         if (repository.deleteById(guildId))
-            log.info("Audit Log Registration Removal Succeeded for [Guild: {}]", guildId);
+            log.debug("Audit Log Registration Removal Succeeded for [Guild: {}]", guildId);
         else {
-            log.info("Audit Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for audit logging]", guildId);
+            log.debug("Audit Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for audit logging]", guildId);
             throw new GuildNotFoundException("Guild is not registered for audit logging");
         }
 

@@ -32,10 +32,10 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            log.info("Message Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
+            log.debug("Message Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
             return dto;
         } catch (ConstraintViolationException e) { // from hibernate
-            log.info("Message Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
+            log.debug("Message Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
             throw new GuildRegistrationFailureException(e);
         }
     }
@@ -62,7 +62,7 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
                 .findByIdOptional(guildId)
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
 
-        log.info("Message Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
+        log.debug("Message Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
                 entity.getGuildId(), entity.getChannelId(), updatedDto.getChannelId()
         );
         
@@ -76,9 +76,9 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         if (repository.deleteById(guildId))
-            log.info("Message Log Registration Removal Succeeded for [Guild: {}]", guildId);
+            log.debug("Message Log Registration Removal Succeeded for [Guild: {}]", guildId);
         else {
-            log.info("Message Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for message logging]", guildId);
+            log.debug("Message Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for message logging]", guildId);
             throw new GuildNotFoundException("Guild is not registered for message logging");
         }
     }
