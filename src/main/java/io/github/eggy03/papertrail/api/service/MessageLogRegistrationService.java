@@ -7,7 +7,6 @@ import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureExcept
 import io.github.eggy03.papertrail.api.mapper.MessageLogRegistrationMapper;
 import io.github.eggy03.papertrail.api.repository.MessageLogRegistrationRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.MessageLogRegistrationServiceInterface;
-import io.github.eggy03.papertrail.api.util.AnsiColor;
 import io.quarkus.cache.CacheInvalidate;
 import io.quarkus.cache.CacheKey;
 import io.quarkus.cache.CacheResult;
@@ -33,9 +32,10 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            log.debug("{}Saved message log guild with ID={}{}", AnsiColor.GREEN, dto.getGuildId(), AnsiColor.RESET);
+            log.debug("Message Log Registration Succeeded for [Guild: {}, Channel: {}]", dto.getGuildId(), dto.getChannelId());
             return dto;
         } catch (ConstraintViolationException e) { // from hibernate
+            log.debug("Message Log Registration Failed for [Guild: {}, Channel: {}] with [Reason: {}]", dto.getGuildId(), dto.getChannelId(), e.getMessage());
             throw new GuildRegistrationFailureException(e);
         }
     }
@@ -62,9 +62,11 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
                 .findByIdOptional(guildId)
                 .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
 
+        log.debug("Message Log Registration Update Queued for [Guild: {}, Channel: {}], with new [Channel: {}]",
+                entity.getGuildId(), entity.getChannelId(), updatedDto.getChannelId()
+        );
+        
         entity.setChannelId(updatedDto.getChannelId());
-
-        log.debug("{}Updated message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
         return mapper.toDTO(entity);
     }
 
@@ -74,8 +76,10 @@ public final class MessageLogRegistrationService implements MessageLogRegistrati
     public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
 
         if (repository.deleteById(guildId))
-            log.debug("{} Deleted message log guild with ID={}{}", AnsiColor.GREEN, guildId, AnsiColor.RESET);
-        else
+            log.debug("Message Log Registration Removal Succeeded for [Guild: {}]", guildId);
+        else {
+            log.debug("Message Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for message logging]", guildId);
             throw new GuildNotFoundException("Guild is not registered for message logging");
+        }
     }
 }
