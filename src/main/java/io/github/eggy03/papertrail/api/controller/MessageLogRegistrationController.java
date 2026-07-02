@@ -3,6 +3,7 @@ package io.github.eggy03.papertrail.api.controller;
 import io.github.eggy03.papertrail.api.dto.MessageLogRegistrationDTO;
 import io.github.eggy03.papertrail.api.service.MessageLogRegistrationService;
 import io.smallrye.common.annotation.Blocking;
+import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -28,6 +29,7 @@ public class MessageLogRegistrationController {
 
     @POST
     @Blocking
+    @RunOnVirtualThread
     public Response registerGuild(@Valid MessageLogRegistrationDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
@@ -38,6 +40,7 @@ public class MessageLogRegistrationController {
     @GET
     @Path("/{guildId}")
     @Blocking
+    @RunOnVirtualThread
     public Response getGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         return Response
                 .ok(service.viewRegisteredGuild(guildId))
@@ -46,6 +49,7 @@ public class MessageLogRegistrationController {
 
     @PUT
     @Blocking
+    @RunOnVirtualThread
     public Response updateGuild(@Valid MessageLogRegistrationDTO dto) {
         return Response
                 .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
@@ -55,6 +59,7 @@ public class MessageLogRegistrationController {
     @DELETE
     @Path("/{guildId}")
     @Blocking
+    @RunOnVirtualThread
     public Response deleteGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         service.deleteRegisteredGuild(guildId);
         return Response.noContent().build();
