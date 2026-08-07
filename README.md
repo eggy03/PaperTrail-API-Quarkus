@@ -1,36 +1,24 @@
 # PaperTrail-API-Quarkus
 
-API service for the PaperTrail Bot, built with Quarkus 3 and optimized for native image builds via GraalVM.
+API Service required by PaperTrailBot to store per-server configuration and messages.
 
 # Status
 
 ![Build and Tests](https://img.shields.io/github/actions/workflow/status/eggy03/PaperTrail-API-Quarkus/.github%2Fworkflows%2Fbuild_verify.yml?style=for-the-badge&label=BUILD)
 ![Latest Release](https://img.shields.io/github/v/release/eggy03/PaperTrail-API-Quarkus?sort=date&display_name=tag&style=for-the-badge&label=LATEST%20RELEASE)
 
-# Self-Host (Auto Configuration)
-
-Recommended for users who want to deploy a single instance of each of the required services
-locally or on a VPS with minimal setup.
-
-Follow the deployment guide in:
-[PaperTrail-Deployment Repository](https://github.com/eggy03/PaperTrail-Deployment?tab=readme-ov-file)
-
-# Self-Host (Manual Configuration)
-
-Recommended for users who want full control over the deployment process,
-prefer building from source, or are deploying to cloud platforms that support repository-based builds.
+# Self-Host Guide
 
 > [!WARNING]
-> This API does not implement authentication.
-> It is intended to run in a private network environment and should only be accessible by the bot service.
-> Do not expose it publicly.
+> This API service is meant to be run internally and accessible only by the bot, and as such, does not contain any form
+of authentication. Do not make this service publicly available once deployed.
 
 ## Step 1: Set up the required services
 
-| Service Type          | Supported Variants        |
-|-----------------------|---------------------------|
-| `Relational Database` | PostgreSQL (v17+)         |
-| `Distributed Cache`   | Redis (v8+)/ Valkey (v9+) |
+| Service Type          | Supported Variants |
+|-----------------------|--------------------|
+| `Relational Database` | PostgreSQL         |
+| `Distributed Cache`   | Redis / Valkey     |
 
 ## Step 2: Set up the required environment variables
 
@@ -52,21 +40,10 @@ in env variable `PORT`.
 
 #### Option A : Deploy Using Pre-Built Docker Images
 
-> [!NOTE]
-> Starting v1.1.4 `ghcr.io/eggy03/papertrail-api:latest` will contain the JVM build
-> and `ghcr.io/eggy03/papertrail-api-native:latest` will contain the Native image
-
 The GitHub Container Registry
 has pre-built docker images for both JVM and Native versions the API service which you can use.
 
-[Container Registry for JVM Edition](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api)
-
-[Container Registry for Native Edition](https://github.com/eggy03/PaperTrail-API-Quarkus/pkgs/container/papertrail-api-native)
-
 You may choose either one.
-
-Make sure you have the `.env` file containing the required secrets in the root of the folder
-you're executing the following commands from:
 
 ```bash
 # JVM
@@ -96,10 +73,6 @@ docker run -d --name papertrail-api --env-file .env papertrail-api
 docker build -f Dockerfile.native -t papertrail-api-native .
 docker run -d --name papertrail-api-native --env-file .env papertrail-api-native
 ```
-> [!NOTE]
->
-> While the above sub-options use `--env-file .env` for examples, you can also pass environment variables directly
-> via `docker -e KEY:"VALUE"`
 
 #### Option C : Building From Source Without Docker
 
