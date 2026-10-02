@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -19,11 +19,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 
-@Path("api/v1/log/audit")
+@Path("api/v2/guild")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequiredArgsConstructor
-public class AuditLogRegistrationController {
+public class GuildController {
 
     private final GuildService service;
 
@@ -31,10 +31,8 @@ public class AuditLogRegistrationController {
     @Blocking
     @RunOnVirtualThread
     public Response registerGuild(@Valid GuildDTO dto) {
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(service.registerGuild(dto))
-                .build();
+        service.saveGuild(dto);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
@@ -43,16 +41,17 @@ public class AuditLogRegistrationController {
     @RunOnVirtualThread
     public Response getGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         return Response
-                .ok(service.viewRegisteredGuild(guildId))
+                .ok(service.viewGuild(guildId))
                 .build();
     }
 
-    @PUT
+    @PATCH
     @Blocking
     @RunOnVirtualThread
     public Response updateGuild(@Valid GuildDTO dto) {
+        service.updateGuild(dto.getGuildId(), dto);
         return Response
-                .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
+                .noContent()
                 .build();
     }
 
@@ -61,7 +60,7 @@ public class AuditLogRegistrationController {
     @Blocking
     @RunOnVirtualThread
     public Response deleteGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
-        service.deleteRegisteredGuild(guildId);
+        service.deleteGuild(guildId);
         return Response.noContent().build();
     }
 

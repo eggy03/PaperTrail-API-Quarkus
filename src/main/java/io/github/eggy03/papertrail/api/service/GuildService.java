@@ -28,24 +28,23 @@ public final class GuildService implements GuildServiceInterface {
 
     @Override
     @Transactional
-    public @NotNull GuildDTO registerGuild(@NonNull GuildDTO dto) {
+    public void saveGuild(@NonNull GuildDTO dto) {
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
-            return dto;
         } catch (ConstraintViolationException e) { // from hibernate
             throw new GuildRegistrationFailureException(e);
         }
     }
 
     @Override
-    @Transactional(Transactional.TxType.SUPPORTS)
+    @Transactional
     @CacheResult(cacheName = "guild")
-    public @NotNull GuildDTO viewRegisteredGuild(@NonNull @CacheKey Long guildId) {
+    public @NotNull GuildDTO viewGuild(@NonNull @CacheKey Long guildId) {
 
         Guild entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
+                .orElseThrow(() -> new GuildNotFoundException("Guild: %s is not saved".formatted(guildId)));
 
         return mapper.toDTO(entity);
     }
@@ -53,30 +52,23 @@ public final class GuildService implements GuildServiceInterface {
     @Override
     @Transactional
     @CacheInvalidate(cacheName = "guild")
-    public @NotNull GuildDTO updateRegisteredGuild(@NonNull @CacheKey Long guildId, @NonNull GuildDTO updatedDto) {
+    public void updateGuild(@NonNull @CacheKey Long guildId, @NonNull GuildDTO updatedDto) {
 
-        // dirty checking
         Guild entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild is not registered"));
+                .orElseThrow(() -> new GuildNotFoundException("Guild: %s to be updated is not saved".formatted(guildId)));
 
+        // dirty checking
         entity.setGuildEventChannelId(updatedDto.getGuildEventChannelId());
         entity.setMemberEventChannelId(updatedDto.getMemberEventChannelId());
         entity.setMessageEventChannelId(updatedDto.getMessageEventChannelId());
-        return mapper.toDTO(entity);
     }
 
     @Override
     @Transactional
     @CacheInvalidate(cacheName = "guild")
-    public void deleteRegisteredGuild(@NonNull @CacheKey Long guildId) {
-
-        if (repository.deleteById(guildId))
-            log.debug("Audit Log Registration Removal Succeeded for [Guild: {}]", guildId);
-        else {
-            log.debug("Audit Log Registration Removal Failed for [Guild: {}] with [Reason: Guild is not registered for audit logging]", guildId);
-            throw new GuildNotFoundException("Guild is not registered for audit logging");
-        }
-
+    public void deleteGuild(@NonNull @CacheKey Long guildId) {
+        if (!repository.deleteById(guildId))
+            throw new GuildNotFoundException("Guild: %s to be deleted is not saved".formatted(guildId));
     }
 }

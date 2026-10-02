@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -21,11 +21,11 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.faulttolerance.Retry;
 
-@Path("/api/v1/content/message")
+@Path("/api/v2/message")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequiredArgsConstructor
-public class MessageLogContentController {
+public class MessageController {
 
     private final MessageService service;
 
@@ -33,10 +33,9 @@ public class MessageLogContentController {
     @Blocking
     @RunOnVirtualThread
     public Response saveMessage(@Valid MessageDTO dto) {
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(service.saveMessage(dto))
-                .build();
+
+        service.saveMessage(dto);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
@@ -49,14 +48,13 @@ public class MessageLogContentController {
                 .build();
     }
 
-    @PUT
+    @PATCH
     @Blocking
     @RunOnVirtualThread
     @Retry(retryOn = OptimisticLockException.class)
     public Response updateMessage(@Valid MessageDTO dto) {
-        return Response
-                .ok(service.updateMessage(dto.getMessageId(), dto))
-                .build();
+        service.updateMessage(dto.getMessageId(), dto);
+        return Response.noContent().build();
     }
 
     @DELETE
