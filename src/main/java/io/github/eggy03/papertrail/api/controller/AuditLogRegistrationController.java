@@ -1,7 +1,7 @@
 package io.github.eggy03.papertrail.api.controller;
 
-import io.github.eggy03.papertrail.api.dto.AuditLogRegistrationDTO;
-import io.github.eggy03.papertrail.api.service.AuditLogRegistrationService;
+import io.github.eggy03.papertrail.api.dto.GuildDTO;
+import io.github.eggy03.papertrail.api.service.GuildService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
@@ -25,12 +25,12 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuditLogRegistrationController {
 
-    private final AuditLogRegistrationService service;
+    private final GuildService service;
 
     @POST
     @Blocking
     @RunOnVirtualThread
-    public Response registerGuild(@Valid AuditLogRegistrationDTO dto) {
+    public Response registerGuild(@Valid GuildDTO dto) {
         return Response
                 .status(Response.Status.CREATED)
                 .entity(service.registerGuild(dto))
@@ -50,7 +50,7 @@ public class AuditLogRegistrationController {
     @PUT
     @Blocking
     @RunOnVirtualThread
-    public Response updateGuild(@Valid AuditLogRegistrationDTO dto) {
+    public Response updateGuild(@Valid GuildDTO dto) {
         return Response
                 .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
                 .build();

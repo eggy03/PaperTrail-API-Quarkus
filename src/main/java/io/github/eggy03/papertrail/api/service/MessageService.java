@@ -1,12 +1,12 @@
 package io.github.eggy03.papertrail.api.service;
 
-import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.entity.MessageLogContent;
+import io.github.eggy03.papertrail.api.dto.MessageDTO;
+import io.github.eggy03.papertrail.api.entity.Message;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
 import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
-import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
-import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
-import io.github.eggy03.papertrail.api.service.interfaces.MessageLogContentServiceInterface;
+import io.github.eggy03.papertrail.api.mapper.MessageMapper;
+import io.github.eggy03.papertrail.api.repository.MessageRepository;
+import io.github.eggy03.papertrail.api.service.interfaces.MessageServiceInterface;
 import io.quarkus.scheduler.Scheduled;
 import io.smallrye.common.constraint.NotNull;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,14 +22,14 @@ import java.time.ZoneOffset;
 @ApplicationScoped
 @RequiredArgsConstructor
 @Slf4j
-public final class MessageLogContentService implements MessageLogContentServiceInterface {
+public final class MessageService implements MessageServiceInterface {
 
-    private final MessageLogContentRepository repository;
-    private final MessageLogContentMapper mapper;
+    private final MessageRepository repository;
+    private final MessageMapper mapper;
 
     @Override
     @Transactional
-    public @NotNull MessageLogContentDTO saveMessage(@NonNull MessageLogContentDTO dto) {
+    public @NotNull MessageDTO saveMessage(@NonNull MessageDTO dto) {
 
         try {
             repository.persistAndFlush(mapper.toEntity(dto));
@@ -46,9 +46,9 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
     @Override
     @Transactional(Transactional.TxType.SUPPORTS)
-    public @NotNull MessageLogContentDTO getMessage(@NonNull Long messageId) {
+    public @NotNull MessageDTO getMessage(@NonNull Long messageId) {
 
-        MessageLogContent entity = repository
+        Message entity = repository
                 .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message hasn't been saved yet"));
 
@@ -57,10 +57,10 @@ public final class MessageLogContentService implements MessageLogContentServiceI
 
     @Override
     @Transactional
-    public @NotNull MessageLogContentDTO updateMessage(@NonNull Long messageId, @NonNull MessageLogContentDTO updatedDto) {
+    public @NotNull MessageDTO updateMessage(@NonNull Long messageId, @NonNull MessageDTO updatedDto) {
 
         // this check is mostly redundant because the clients usually call view message before updating
-        MessageLogContent entity = repository
+        Message entity = repository
                 .findByIdOptional(messageId)
                 .orElseThrow(() -> new MessageNotFoundException("Message to be updated was never saved"));
 

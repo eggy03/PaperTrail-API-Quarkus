@@ -20,8 +20,8 @@ import java.time.OffsetDateTime;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "message_log_content_table")
-public class MessageLogContent {
+@Table(name = "message_table")
+public class Message {
 
     @Id
     @Column(name = "message_id")

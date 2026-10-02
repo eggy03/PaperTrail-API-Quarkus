@@ -1,7 +1,5 @@
 package io.github.eggy03.papertrail.api.controller;
 
-import io.github.eggy03.papertrail.api.dto.MessageLogRegistrationDTO;
-import io.github.eggy03.papertrail.api.service.MessageLogRegistrationService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;

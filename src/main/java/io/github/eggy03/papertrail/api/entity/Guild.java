@@ -16,14 +16,20 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "message_log_registration_table")
-public class MessageLogRegistration {
+@Table(name = "guild_table")
+public class Guild {
 
     @Id
     @Column(name = "guild_id")
     private Long guildId;
 
-    @Column(name = "channel_id", unique = true, nullable = false)
-    private Long channelId;
+    @Column(name = "guild_event_channel_id", unique = true)
+    private Long guildEventChannelId;
+
+    @Column(name = "member_event_channel_id", unique = true)
+    private Long memberEventChannelId;
+
+    @Column(name = "message_event_channel_id", unique = true)
+    private Long messageEventChannelId;
 
 }
