@@ -2,6 +2,7 @@ package io.github.eggy03.papertrail.api.service;
 
 import io.github.eggy03.papertrail.api.dto.GuildDTO;
 import io.github.eggy03.papertrail.api.entity.Guild;
+import io.github.eggy03.papertrail.api.exceptions.AllChannelsNullException;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
 import io.github.eggy03.papertrail.api.mapper.GuildMapper;
 import io.github.eggy03.papertrail.api.repository.GuildRepository;
@@ -27,6 +28,10 @@ public final class GuildService implements GuildServiceInterface {
     @Override
     @Transactional
     public void saveGuild(@NonNull GuildDTO dto) {
+
+        if (dto.getGuildEventChannelId() == null && dto.getMemberEventChannelId() == null && dto.getMessageEventChannelId() == null)
+            throw new AllChannelsNullException("All three of the channels cannot be null together");
+
         repository.persist(mapper.toEntity(dto));
     }
 
@@ -46,6 +51,9 @@ public final class GuildService implements GuildServiceInterface {
     @Transactional
     @CacheInvalidate(cacheName = "guild")
     public void updateGuild(@NonNull @CacheKey Long guildId, @NonNull GuildDTO updatedDto) {
+
+        if (updatedDto.getGuildEventChannelId() == null && updatedDto.getMemberEventChannelId() == null && updatedDto.getMessageEventChannelId() == null)
+            throw new AllChannelsNullException("All three of the channels cannot be null together");
 
         Guild entity = repository
                 .findByIdOptional(guildId)
