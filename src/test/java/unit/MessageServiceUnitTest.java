@@ -66,7 +66,7 @@ class MessageServiceUnitTest {
     }
 
     @Test
-    void getMessage_notSaved_notFound() {
+    void getMessage_notSaved_throwsException() {
 
         when(repository.findByIdOptional(TEST_MESSAGE_ID)).thenReturn(Optional.empty());
 
@@ -93,7 +93,7 @@ class MessageServiceUnitTest {
     }
 
     @Test
-    void updateMessage_doesNotExist() {
+    void updateMessage_doesNotExist_throwsException() {
 
         when(repository.findByIdOptional(TEST_MESSAGE_ID)).thenReturn(Optional.empty());
 
@@ -116,7 +116,7 @@ class MessageServiceUnitTest {
     }
 
     @Test
-    void deleteMessage_doesNotExist_notFound() {
+    void deleteMessage_doesNotExist_throwsException() {
 
         when(repository.deleteById(TEST_MESSAGE_ID)).thenReturn(false);
 

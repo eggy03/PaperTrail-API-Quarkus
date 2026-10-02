@@ -2,6 +2,7 @@ package unit;
 
 import io.github.eggy03.papertrail.api.dto.GuildDTO;
 import io.github.eggy03.papertrail.api.entity.Guild;
+import io.github.eggy03.papertrail.api.exceptions.AllChannelsNullException;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
 import io.github.eggy03.papertrail.api.mapper.GuildMapper;
 import io.github.eggy03.papertrail.api.repository.GuildRepository;
@@ -18,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -53,6 +55,16 @@ class GuildServiceUnitTest {
     }
 
     @Test
+    void saveGuild_allChannelsNull_throwsException() {
+
+        GuildDTO invalidDTO = new GuildDTO(111111111111111L, null, null, null);
+        assertThrows(AllChannelsNullException.class, () -> service.saveGuild(invalidDTO));
+
+        verify(mapper, never()).toDTO(any());
+        verifyNoMoreInteractions(mapper, repository);
+    }
+
+    @Test
     void viewGuild_success() {
 
         when(repository.findByIdOptional(TEST_GUILD_ID)).thenReturn(Optional.of(validEntity));
@@ -67,7 +79,7 @@ class GuildServiceUnitTest {
     }
 
     @Test
-    void viewGuild_notRegistered_notFound() {
+    void viewGuild_notSaved_throwsException() {
 
         when(repository.findByIdOptional(TEST_GUILD_ID)).thenReturn(Optional.empty());
 
@@ -95,7 +107,7 @@ class GuildServiceUnitTest {
     }
 
     @Test
-    void updateGuild_doesNotExist() {
+    void updateGuild_doesNotExist_throwsException() {
 
         when(repository.findByIdOptional(TEST_GUILD_ID)).thenReturn(Optional.empty());
 
@@ -103,6 +115,17 @@ class GuildServiceUnitTest {
 
         verify(repository).findByIdOptional(TEST_GUILD_ID);
         verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    void updateGuild_allChannelsNull_throwsException() {
+
+        GuildDTO invalidDTO = new GuildDTO(111111111111111L, null, null, null);
+        assertThrows(AllChannelsNullException.class, () -> service.updateGuild(111111111111111L, invalidDTO));
+
+        verify(repository, never()).findByIdOptional(anyLong());
+        verify(mapper, never()).toDTO(any());
+        verifyNoMoreInteractions(mapper, repository);
     }
 
 
@@ -118,7 +141,7 @@ class GuildServiceUnitTest {
     }
 
     @Test
-    void deleteGuild_doesNotExist_notFound() {
+    void deleteGuild_doesNotExist_throwsException() {
 
         when(repository.deleteById(TEST_GUILD_ID)).thenReturn(false);
 

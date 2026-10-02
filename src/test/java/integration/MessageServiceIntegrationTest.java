@@ -22,36 +22,50 @@ import static org.hamcrest.Matchers.is;
 @QuarkusTest
 class MessageServiceIntegrationTest {
 
-    static final Long MESSAGE_ID = 1302148573926148096L;
-    static final String MESSAGE_CONTENT = "message";
-    static final Long AUTHOR_ID = 1302148573926148097L;
-    static final Long NEGATIVE_MESSAGE_ID = -1302148573926148096L;
-    static final Long NEGATIVE_AUTHOR_ID = -1302148573926148097L;
     private static final String BASE_PATH = "/api/v2/message";
     // prep a valid Entity
-    final Message validEntity = new Message(MESSAGE_ID, MESSAGE_CONTENT, AUTHOR_ID, null, null);
+    final Message sampleEntity = new Message(111111111111111L, "message-one", 999999999999999L, null, null);
     // prep a valid DTO
-    final MessageDTO validDTO = new MessageDTO(MESSAGE_ID, MESSAGE_CONTENT, AUTHOR_ID);
+    final MessageDTO sampleDTO = new MessageDTO(111111111111111L, "message-one", 999999999999999L);
+
     @Inject
     MessageRepository repository;
+
     // RedisDataSource while not annotated for CDI, does get injected because Quarkus handles this synthetic bean
     // Or IntelliJ does not see the dependencies
     // see https://github.com/quarkiverse/quarkus-minio/issues/413 and https://github.com/quarkusio/quarkus/discussions/25120
     @Inject
     RedisDataSource redisDataSource;
 
-    // prep a stream of invalid DTOs
-    public static Stream<MessageDTO> invalidDTOs() {
+    // prep a stream of negative DTOs
+    public static Stream<MessageDTO> negativeDTOs() {
+
+        final Long MESSAGE_ID = 111111111111111L;
+        final String MESSAGE_CONTENT = "message-two";
+        final Long AUTHOR_ID = 222222222222222L;
+
+        final Long NEGATIVE_MESSAGE_ID = -111111111111111L;
+        final Long NEGATIVE_AUTHOR_ID = -222222222222222L;
+
+        MessageDTO negativeMessageIdDTO = new MessageDTO(NEGATIVE_MESSAGE_ID, MESSAGE_CONTENT, AUTHOR_ID);
+        MessageDTO negativeAuthorIdDTO = new MessageDTO(MESSAGE_ID, MESSAGE_CONTENT, NEGATIVE_AUTHOR_ID);
+
+        return Stream.of(negativeMessageIdDTO, negativeAuthorIdDTO);
+    }
+
+    // prep a stream of null DTOs
+    public static Stream<MessageDTO> nullDTOs() {
+
+        final Long MESSAGE_ID = 111111111111111L;
+        final String MESSAGE_CONTENT = "message-two";
+        final Long AUTHOR_ID = 222222222222222L;
 
         MessageDTO nullBodyDTO = new MessageDTO(null, null, null);
         MessageDTO nullMessageIdDTO = new MessageDTO(null, MESSAGE_CONTENT, AUTHOR_ID);
         MessageDTO nullMessageContentDTO = new MessageDTO(MESSAGE_ID, null, AUTHOR_ID);
         MessageDTO nullAuthorIdDTO = new MessageDTO(MESSAGE_ID, MESSAGE_CONTENT, null);
 
-        MessageDTO negativeMessageIdDTO = new MessageDTO(NEGATIVE_MESSAGE_ID, MESSAGE_CONTENT, AUTHOR_ID);
-        MessageDTO negativeAuthorIdDTO = new MessageDTO(MESSAGE_ID, MESSAGE_CONTENT, NEGATIVE_AUTHOR_ID);
-
-        return Stream.of(nullBodyDTO, nullMessageIdDTO, nullMessageContentDTO, nullAuthorIdDTO, negativeMessageIdDTO, negativeAuthorIdDTO);
+        return Stream.of(nullBodyDTO, nullMessageIdDTO, nullMessageContentDTO, nullAuthorIdDTO);
     }
 
     @BeforeEach
@@ -63,40 +77,40 @@ class MessageServiceIntegrationTest {
     @Test
     void saveMessage_success() {
 
-        given().contentType("application/json").body(validDTO)
+        given().contentType("application/json").body(sampleDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201);
 
         // assert that save was a success
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(sampleDTO.getMessageId()));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(Message::getMessageId, Message::getMessageContent, Message::getAuthorId)
-                .containsExactly(MESSAGE_ID, MESSAGE_CONTENT, AUTHOR_ID);
+                .containsExactly(sampleDTO.getMessageId(), sampleDTO.getMessageContent(), sampleDTO.getAuthorId());
     }
 
     @Test
     void saveMessage_alreadyExists_conflicts() {
 
         // save once, expect success
-        given().contentType("application/json").body(validDTO)
+        given().contentType("application/json").body(sampleDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(201);
 
         // save again, expect 409 conflict
-        given().contentType("application/json").body(validDTO)
+        given().contentType("application/json").body(sampleDTO)
                 .when().post(BASE_PATH)
                 .then().statusCode(409);
 
     }
 
     @ParameterizedTest
-    @MethodSource("invalidDTOs")
-    void saveMessage_validationFails_badRequest(MessageDTO dto) {
+    @MethodSource("negativeDTOs")
+    void saveMessage_negativeDTOs_validationFails_badRequest(MessageDTO dto) {
 
         given().contentType("application/json").body(dto)
                 .when().post(BASE_PATH)
@@ -105,14 +119,26 @@ class MessageServiceIntegrationTest {
         // assert that nothing was saved
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(dto.getMessageId()));
 
         Optional<Message> entityOptionalTwo = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(NEGATIVE_MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(-dto.getMessageId())); // test for negatives
 
         assertThat(entityOptional).isEmpty();
         assertThat(entityOptionalTwo).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("nullDTOs")
+    void saveMessage_nullDTOs_validationFails_badRequest(MessageDTO dto) {
+
+        given().contentType("application/json").body(dto)
+                .when().post(BASE_PATH)
+                .then().statusCode(400);
+
+        // assert that nothing was saved
+        assertThat(repository.findAll().list()).isEmpty();
     }
 
     @Test
@@ -128,23 +154,25 @@ class MessageServiceIntegrationTest {
     void getMessage_success() {
 
         // save to db
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(sampleEntity));
 
         // view message - expect success
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/" + MESSAGE_ID)
+                .when().get(BASE_PATH + "/" + sampleEntity.getMessageId())
                 .then().statusCode(200)
-                .body("messageId", is(MESSAGE_ID))
-                .body("messageContent", is(MESSAGE_CONTENT))
-                .body("authorId", is(AUTHOR_ID));
+                .body("messageId", is(sampleEntity.getMessageId()))
+                .body("messageContent", is(sampleEntity.getMessageContent()))
+                .body("authorId", is(sampleEntity.getAuthorId()));
 
     }
 
     @Test
     void getMessage_notSaved_notFound() {
 
+        long nonExistentMessageId = 999999999999999L;
+
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/" + MESSAGE_ID)
+                .when().get(BASE_PATH + "/" + nonExistentMessageId)
                 .then().statusCode(404);
 
     }
@@ -152,8 +180,10 @@ class MessageServiceIntegrationTest {
     @Test
     void getMessage_invalidParameters() {
 
+        long negativeMessageId = -999999999999999L;
+
         given().contentType("application/json")
-                .when().get(BASE_PATH + "/" + NEGATIVE_MESSAGE_ID)
+                .when().get(BASE_PATH + "/" + negativeMessageId)
                 .then().statusCode(400);
 
     }
@@ -162,10 +192,10 @@ class MessageServiceIntegrationTest {
     void updateMessage_success() {
 
         // save message
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(sampleEntity));
 
         // create an updated DTO
-        MessageDTO dto = new MessageDTO(MESSAGE_ID, "updatedMessage", AUTHOR_ID);
+        MessageDTO dto = new MessageDTO(sampleEntity.getMessageId(), "updatedMessage", sampleEntity.getAuthorId() + 1);
 
         given().contentType("application/json").body(dto)
                 .when().patch(BASE_PATH)
@@ -174,13 +204,13 @@ class MessageServiceIntegrationTest {
         // verify update
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(sampleEntity.getMessageId()));
 
         assertThat(entityOptional)
                 .isPresent()
                 .get()
                 .extracting(Message::getMessageId, Message::getMessageContent, Message::getAuthorId)
-                .containsExactly(MESSAGE_ID, "updatedMessage", AUTHOR_ID);
+                .containsExactly(sampleEntity.getMessageId(), "updatedMessage", sampleEntity.getAuthorId() + 1);
 
     }
 
@@ -188,22 +218,22 @@ class MessageServiceIntegrationTest {
     void updateMessage_doesNotExist_notFound() {
 
         // update without saving first
-        given().contentType("application/json").body(validDTO)
+        given().contentType("application/json").body(sampleDTO)
                 .when().patch(BASE_PATH)
                 .then().statusCode(404);
 
-        // verify update didn't register a new guild
+        // verify update didn't save a new message
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(sampleDTO.getMessageId()));
 
         assertThat(entityOptional).isEmpty();
 
     }
 
     @ParameterizedTest
-    @MethodSource("invalidDTOs")
-    void updateGuild_validationFails_badRequest(MessageDTO dto) {
+    @MethodSource("negativeDTOs")
+    void updateMessage_negativeDTOs_validationFails_badRequest(MessageDTO dto) {
 
         given().contentType("application/json").body(dto)
                 .when().patch(BASE_PATH)
@@ -212,18 +242,25 @@ class MessageServiceIntegrationTest {
         // verify that updates were not applied
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
-
-        Optional<Message> entityOptionalTwo = QuarkusTransaction
-                .requiringNew()
-                .call(() -> repository.findByIdOptional(NEGATIVE_MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(dto.getMessageId()));
 
         assertThat(entityOptional).isEmpty();
-        assertThat(entityOptionalTwo).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("nullDTOs")
+    void updateMessage_nullDTOs_validationFails_badRequest(MessageDTO dto) {
+
+        given().contentType("application/json").body(dto)
+                .when().patch(BASE_PATH)
+                .then().statusCode(400);
+
+        // verify that updates were not applied
+        assertThat(repository.findAll().list()).isEmpty();
     }
 
     @Test
-    void updateGuild_deserializationFails_badRequest() {
+    void updateMessage_deserializationFails_badRequest() {
 
         given().contentType("application/json").body("\"text\"")
                 .when().patch(BASE_PATH)
@@ -235,17 +272,17 @@ class MessageServiceIntegrationTest {
     void deleteMessage_success() {
 
         // register
-        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(validEntity));
+        QuarkusTransaction.requiringNew().run(() -> repository.persistAndFlush(sampleEntity));
 
         // delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/" + MESSAGE_ID)
+                .when().delete(BASE_PATH + "/" + sampleEntity.getMessageId())
                 .then().statusCode(204);
 
         // verify deletion
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(sampleEntity.getMessageId()));
 
         assertThat(entityOptional).isEmpty();
 
@@ -254,15 +291,17 @@ class MessageServiceIntegrationTest {
     @Test
     void deleteMessage_doesNotExist_notFound() {
 
+        long nonExistentMessageId = 999999999999999L;
+
         // attempt delete
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/" + MESSAGE_ID)
+                .when().delete(BASE_PATH + "/" + nonExistentMessageId)
                 .then().statusCode(404);
 
-        // verify guild actually does not exist
+        // verify message actually does not exist
         Optional<Message> entityOptional = QuarkusTransaction
                 .requiringNew()
-                .call(() -> repository.findByIdOptional(MESSAGE_ID));
+                .call(() -> repository.findByIdOptional(nonExistentMessageId));
 
         assertThat(entityOptional).isEmpty();
 
@@ -271,8 +310,10 @@ class MessageServiceIntegrationTest {
     @Test
     void deleteMessage_invalidParameters() {
 
+        long negativeMessageId = -999999999999999L;
+
         given().contentType("application/json")
-                .when().delete(BASE_PATH + "/" + NEGATIVE_MESSAGE_ID)
+                .when().delete(BASE_PATH + "/" + negativeMessageId)
                 .then().statusCode(400);
 
     }
