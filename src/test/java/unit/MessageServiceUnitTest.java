@@ -1,13 +1,11 @@
 package unit;
 
-import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.entity.MessageLogContent;
+import io.github.eggy03.papertrail.api.dto.MessageDTO;
+import io.github.eggy03.papertrail.api.entity.Message;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
-import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
-import io.github.eggy03.papertrail.api.mapper.MessageLogContentMapper;
-import io.github.eggy03.papertrail.api.repository.MessageLogContentRepository;
-import io.github.eggy03.papertrail.api.service.MessageLogContentService;
-import org.hibernate.exception.ConstraintViolationException;
+import io.github.eggy03.papertrail.api.mapper.MessageMapper;
+import io.github.eggy03.papertrail.api.repository.MessageRepository;
+import io.github.eggy03.papertrail.api.service.MessageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,28 +18,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class MessageLogContentServiceUnitTest {
+class MessageServiceUnitTest {
 
     static final Long TEST_MESSAGE_ID = 1302148573926148096L;
     static final String TEST_MESSAGE_CONTENT = "message";
     static final Long TEST_AUTHOR_ID = 1302148573926148097L;
     // prep a valid Entity
-    final MessageLogContent validEntity = new MessageLogContent(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null, null);
+    final Message validEntity = new Message(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID, null, null);
     // prep a valid DTO
-    final MessageLogContentDTO validDTO = new MessageLogContentDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
+    final MessageDTO validDTO = new MessageDTO(TEST_MESSAGE_ID, TEST_MESSAGE_CONTENT, TEST_AUTHOR_ID);
     @Mock
-    MessageLogContentRepository repository;
+    MessageRepository repository;
     @Mock
-    MessageLogContentMapper mapper;
+    MessageMapper mapper;
     @InjectMocks
-    MessageLogContentService service;
+    MessageService service;
 
     @Test
     void saveMessage_success() {
@@ -50,21 +47,8 @@ class MessageLogContentServiceUnitTest {
 
         service.saveMessage(validDTO);
 
-        verify(repository).persistAndFlush(validEntity);
+        verify(repository).persist(validEntity);
         verifyNoMoreInteractions(repository, mapper);
-    }
-
-    @Test
-    void saveMessage_alreadyExists_conflicts() {
-
-        when(mapper.toEntity(validDTO)).thenReturn(validEntity);
-        doThrow(ConstraintViolationException.class).when(repository).persistAndFlush(validEntity);
-
-        assertThrows(MessageSaveFailureException.class, () -> service.saveMessage(validDTO));
-
-        verify(mapper).toEntity(validDTO);
-        verify(repository).persistAndFlush(validEntity);
-        verifyNoMoreInteractions(mapper, repository);
     }
 
     @Test
@@ -73,7 +57,7 @@ class MessageLogContentServiceUnitTest {
         when(repository.findByIdOptional(TEST_MESSAGE_ID)).thenReturn(Optional.of(validEntity));
         when(mapper.toDTO(validEntity)).thenReturn(validDTO);
 
-        MessageLogContentDTO result = service.getMessage(TEST_MESSAGE_ID);
+        MessageDTO result = service.getMessage(TEST_MESSAGE_ID);
         assertThat(result).isEqualTo(validDTO);
 
         verify(repository).findByIdOptional(TEST_MESSAGE_ID);
@@ -96,7 +80,7 @@ class MessageLogContentServiceUnitTest {
     @Test
     void updateMessage_success() {
 
-        MessageLogContent oldEntity = new MessageLogContent(TEST_MESSAGE_ID, "oldMessage", 123L, null, null);
+        Message oldEntity = new Message(TEST_MESSAGE_ID, "oldMessage", 123L, null, null);
         when(repository.findByIdOptional(TEST_MESSAGE_ID)).thenReturn(Optional.of(oldEntity));
 
         service.updateMessage(TEST_MESSAGE_ID, validDTO);
