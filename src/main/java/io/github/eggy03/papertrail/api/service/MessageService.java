@@ -3,7 +3,6 @@ package io.github.eggy03.papertrail.api.service;
 import io.github.eggy03.papertrail.api.dto.MessageDTO;
 import io.github.eggy03.papertrail.api.entity.Message;
 import io.github.eggy03.papertrail.api.exceptions.MessageNotFoundException;
-import io.github.eggy03.papertrail.api.exceptions.MessageSaveFailureException;
 import io.github.eggy03.papertrail.api.mapper.MessageMapper;
 import io.github.eggy03.papertrail.api.repository.MessageRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.MessageServiceInterface;
@@ -14,7 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -30,15 +28,7 @@ public final class MessageService implements MessageServiceInterface {
     @Override
     @Transactional
     public void saveMessage(@NonNull MessageDTO dto) {
-
-        try {
-            repository.persistAndFlush(mapper.toEntity(dto));
-        } catch (ConstraintViolationException e) {// from hibernate
-            throw new MessageSaveFailureException(e);
-        }
-        // API Note: While ConstraintViolationException covers for a lot of constraints other than PK constraint
-        // We have already covered them during dto validation phase in the controller
-        // So realistically, only PK/UK constraint issues will be propagated from here
+        repository.persist(mapper.toEntity(dto));
     }
 
     @Override

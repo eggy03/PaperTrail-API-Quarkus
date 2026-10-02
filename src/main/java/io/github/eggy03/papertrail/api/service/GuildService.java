@@ -3,7 +3,6 @@ package io.github.eggy03.papertrail.api.service;
 import io.github.eggy03.papertrail.api.dto.GuildDTO;
 import io.github.eggy03.papertrail.api.entity.Guild;
 import io.github.eggy03.papertrail.api.exceptions.GuildNotFoundException;
-import io.github.eggy03.papertrail.api.exceptions.GuildRegistrationFailureException;
 import io.github.eggy03.papertrail.api.mapper.GuildMapper;
 import io.github.eggy03.papertrail.api.repository.GuildRepository;
 import io.github.eggy03.papertrail.api.service.interfaces.GuildServiceInterface;
@@ -16,7 +15,6 @@ import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 
 @ApplicationScoped
 @RequiredArgsConstructor
@@ -29,12 +27,7 @@ public final class GuildService implements GuildServiceInterface {
     @Override
     @Transactional
     public void saveGuild(@NonNull GuildDTO dto) {
-
-        try {
-            repository.persistAndFlush(mapper.toEntity(dto));
-        } catch (ConstraintViolationException e) { // from hibernate
-            throw new GuildRegistrationFailureException(e);
-        }
+        repository.persist(mapper.toEntity(dto));
     }
 
     @Override
