@@ -126,16 +126,17 @@ class GuildServiceIntegrationTest {
                 .containsExactly(dto.getGuildId(), dto.getGuildEventChannelId(), dto.getMemberEventChannelId(), dto.getMessageEventChannelId());
     }
 
-    @Test
-    void saveGuild_alreadyExists_conflicts() {
+    @ParameterizedTest
+    @MethodSource("validDTOs")
+    void saveGuild_alreadyExists_conflicts(GuildDTO dto) {
 
         // register once, expect success
-        given().contentType("application/json").body(sampleDTO)
+        given().contentType("application/json").body(dto)
                 .when().post(BASE_PATH)
                 .then().statusCode(201);
 
         // register again, expect 409 conflict
-        given().contentType("application/json").body(sampleDTO)
+        given().contentType("application/json").body(dto)
                 .when().post(BASE_PATH)
                 .then().statusCode(409);
 
