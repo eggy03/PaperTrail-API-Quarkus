@@ -1,7 +1,7 @@
 package io.github.eggy03.papertrail.api.controller;
 
-import io.github.eggy03.papertrail.api.dto.MessageLogContentDTO;
-import io.github.eggy03.papertrail.api.service.MessageLogContentService;
+import io.github.eggy03.papertrail.api.dto.MessageDTO;
+import io.github.eggy03.papertrail.api.service.MessageService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.persistence.OptimisticLockException;
@@ -11,8 +11,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -21,22 +21,21 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.faulttolerance.Retry;
 
-@Path("/api/v1/content/message")
+@Path("/api/v2/message")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequiredArgsConstructor
-public class MessageLogContentController {
+public class MessageController {
 
-    private final MessageLogContentService service;
+    private final MessageService service;
 
     @POST
     @Blocking
     @RunOnVirtualThread
-    public Response saveMessage(@Valid MessageLogContentDTO dto) {
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(service.saveMessage(dto))
-                .build();
+    public Response saveMessage(@Valid MessageDTO dto) {
+
+        service.saveMessage(dto);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
@@ -49,14 +48,13 @@ public class MessageLogContentController {
                 .build();
     }
 
-    @PUT
+    @PATCH
     @Blocking
     @RunOnVirtualThread
     @Retry(retryOn = OptimisticLockException.class)
-    public Response updateMessage(@Valid MessageLogContentDTO dto) {
-        return Response
-                .ok(service.updateMessage(dto.getMessageId(), dto))
-                .build();
+    public Response updateMessage(@Valid MessageDTO dto) {
+        service.updateMessage(dto.getMessageId(), dto);
+        return Response.noContent().build();
     }
 
     @DELETE
