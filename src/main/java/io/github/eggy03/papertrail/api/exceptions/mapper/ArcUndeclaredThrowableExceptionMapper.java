@@ -7,12 +7,14 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 @Provider
+@Slf4j
 public class ArcUndeclaredThrowableExceptionMapper implements ExceptionMapper<ArcUndeclaredThrowableException> {
 
     @Context
@@ -45,6 +47,9 @@ public class ArcUndeclaredThrowableExceptionMapper implements ExceptionMapper<Ar
     }
 
     private Response genericResponse(ArcUndeclaredThrowableException e) {
+
+        log.warn("Exception from a generated arc class", e);
+
         ErrorResponse errorResponse = new ErrorResponse(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(),
                 e.getClass().getSimpleName(),

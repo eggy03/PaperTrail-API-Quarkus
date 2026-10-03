@@ -28,6 +28,9 @@ public final class MessageService implements MessageServiceInterface {
     @Override
     @Transactional
     public void saveMessage(@NonNull MessageDTO dto) {
+
+        log.debug("Saving message [messageId={}, authorId={}]", dto.getMessageId(), dto.getAuthorId());
+
         repository.persist(mapper.toEntity(dto));
     }
 
@@ -35,22 +38,35 @@ public final class MessageService implements MessageServiceInterface {
     @Transactional
     public @NotNull MessageDTO getMessage(@NonNull Long messageId) {
 
+        log.debug("Fetching message [messageId={}]", messageId);
+
         Message entity = repository
                 .findByIdOptional(messageId)
-                .orElseThrow(() -> new MessageNotFoundException("Message hasn't been saved yet"));
+                .orElseThrow(() -> {
+                    log.debug("Message not found [messageId={}]", messageId);
+                    return new MessageNotFoundException("Message hasn't been saved yet");
+                });
 
         return mapper.toDTO(entity);
     }
 
     @Override
     @Transactional
-    public void updateMessage(@NonNull Long messageId, @NonNull MessageDTO updatedDto) {
+    public void updateMessage(
+            @NonNull Long messageId,
+            @NonNull MessageDTO updatedDto
+    ) {
+
+        log.debug("Updating message [messageId={}, authorId={}]", messageId, updatedDto.getAuthorId());
 
         Message entity = repository
                 .findByIdOptional(messageId)
-                .orElseThrow(() -> new MessageNotFoundException("Message: %s to be updated was never saved".formatted(messageId)));
+                .orElseThrow(() -> {
+                    log.debug("Cannot update message because it was not found [messageId={}]", messageId);
+                    return new MessageNotFoundException("Message: %s to be updated was never saved".formatted(messageId));
+                });
 
-        // quarkus will automatically detect changes to this entity and update the database
+        // dirty checking
         entity.setMessageContent(updatedDto.getMessageContent());
         entity.setAuthorId(updatedDto.getAuthorId());
     }
@@ -58,15 +74,25 @@ public final class MessageService implements MessageServiceInterface {
     @Override
     @Transactional
     public void deleteMessage(@NonNull Long messageId) {
-        if (!repository.deleteById(messageId))
-            throw new MessageNotFoundException("Message :%s to be deleted was never saved".formatted(messageId));
+
+        log.debug("Deleting message [messageId={}]", messageId);
+
+        if (!repository.deleteById(messageId)) {
+            log.debug("Cannot delete message because it was not found [messageId={}]", messageId);
+            throw new MessageNotFoundException("Message: %s to be deleted was never saved".formatted(messageId));
+        }
     }
 
     @Scheduled(every = "24h")
     @Transactional
     public void cleanupMessages() {
+
         OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+
+        log.debug("Starting message cleanup [cutoff={}]", cutoff);
+
         long deletedMessageCount = repository.deleteOlderThan(cutoff);
-        log.debug("Message Content Cleanup Service- Cleaned up {} messages older than {}", deletedMessageCount, cutoff);
+
+        log.info("Message cleanup completed [deletedMessages={}, cutoff={}]", deletedMessageCount, cutoff);
     }
 }

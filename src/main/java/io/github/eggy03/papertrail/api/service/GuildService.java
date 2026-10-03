@@ -29,8 +29,17 @@ public final class GuildService implements GuildServiceInterface {
     @Transactional
     public void saveGuild(@NonNull GuildDTO dto) {
 
-        if (dto.getGuildEventChannelId() == null && dto.getMemberEventChannelId() == null && dto.getMessageEventChannelId() == null)
+        log.debug("Saving guild configuration [guildId={}, guildEventChannelId={}, memberEventChannelId={}, messageEventChannelId={}]",
+                dto.getGuildId(),
+                dto.getGuildEventChannelId(),
+                dto.getMemberEventChannelId(),
+                dto.getMessageEventChannelId()
+        );
+
+        if (dto.getGuildEventChannelId() == null && dto.getMemberEventChannelId() == null && dto.getMessageEventChannelId() == null) {
+            log.warn("Cannot save guild configuration because all event channels are null [guildId={}]", dto.getGuildId());
             throw new AllChannelsNullException("All three of the channels cannot be null together");
+        }
 
         repository.persist(mapper.toEntity(dto));
     }
@@ -40,9 +49,14 @@ public final class GuildService implements GuildServiceInterface {
     @CacheResult(cacheName = "guild")
     public @NotNull GuildDTO viewGuild(@NonNull @CacheKey Long guildId) {
 
+        log.debug("Fetching guild configuration for [guildId={}", guildId);
+
         Guild entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild: %s is not saved".formatted(guildId)));
+                .orElseThrow(() -> {
+                    log.debug("Guild configuration not found [guildId={}]", guildId);
+                    return new GuildNotFoundException("Guild: %s is not saved".formatted(guildId));
+                });
 
         return mapper.toDTO(entity);
     }
@@ -52,12 +66,24 @@ public final class GuildService implements GuildServiceInterface {
     @CacheInvalidate(cacheName = "guild")
     public void updateGuild(@NonNull @CacheKey Long guildId, @NonNull GuildDTO updatedDto) {
 
-        if (updatedDto.getGuildEventChannelId() == null && updatedDto.getMemberEventChannelId() == null && updatedDto.getMessageEventChannelId() == null)
+        log.debug("Updating guild configuration [guildId={}, guildEventChannelId={}, memberEventChannelId={}, messageEventChannelId={}]",
+                guildId,
+                updatedDto.getGuildEventChannelId(),
+                updatedDto.getMemberEventChannelId(),
+                updatedDto.getMessageEventChannelId()
+        );
+
+        if (updatedDto.getGuildEventChannelId() == null && updatedDto.getMemberEventChannelId() == null && updatedDto.getMessageEventChannelId() == null) {
+            log.warn("Cannot update guild configuration because all event channels are null [guildId={}]", guildId);
             throw new AllChannelsNullException("All three of the channels cannot be null together");
+        }
 
         Guild entity = repository
                 .findByIdOptional(guildId)
-                .orElseThrow(() -> new GuildNotFoundException("Guild: %s to be updated is not saved".formatted(guildId)));
+                .orElseThrow(() -> {
+                    log.debug("Cannot update guild because configuration was not found [guildId={}]", guildId);
+                    return new GuildNotFoundException("Guild: %s to be updated is not saved".formatted(guildId));
+                });
 
         // dirty checking
         entity.setGuildEventChannelId(updatedDto.getGuildEventChannelId());
@@ -69,7 +95,12 @@ public final class GuildService implements GuildServiceInterface {
     @Transactional
     @CacheInvalidate(cacheName = "guild")
     public void deleteGuild(@NonNull @CacheKey Long guildId) {
-        if (!repository.deleteById(guildId))
+
+        log.debug("Deleting guild configuration [guildId={}]", guildId);
+
+        if (!repository.deleteById(guildId)) {
+            log.debug("Cannot delete guild because configuration was not found [guildId={}]", guildId);
             throw new GuildNotFoundException("Guild: %s to be deleted is not saved".formatted(guildId));
+        }
     }
 }
