@@ -10,14 +10,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageLogContentDTO {
+public class MessageDTO {
 
     @NotNull(message = "MessageID cannot be null")
     @Positive(message = "MessageID must be positive")
     private Long messageId;
 
     @NotNull(message = "Message content cannot be null")
-    @Size(max = 4000)
+    @Size(max = 8000)
     private String messageContent;
 
     @NotNull(message = "AuthorID cannot be null")

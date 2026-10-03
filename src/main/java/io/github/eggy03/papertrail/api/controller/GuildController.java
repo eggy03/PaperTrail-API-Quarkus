@@ -1,7 +1,7 @@
 package io.github.eggy03.papertrail.api.controller;
 
-import io.github.eggy03.papertrail.api.dto.MessageLogRegistrationDTO;
-import io.github.eggy03.papertrail.api.service.MessageLogRegistrationService;
+import io.github.eggy03.papertrail.api.dto.GuildDTO;
+import io.github.eggy03.papertrail.api.service.GuildService;
 import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.validation.Valid;
@@ -10,8 +10,8 @@ import jakarta.validation.constraints.Positive;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -19,22 +19,20 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 
-@Path("api/v1/log/message")
+@Path("api/v2/guild")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequiredArgsConstructor
-public class MessageLogRegistrationController {
+public class GuildController {
 
-    private final MessageLogRegistrationService service;
+    private final GuildService service;
 
     @POST
     @Blocking
     @RunOnVirtualThread
-    public Response registerGuild(@Valid MessageLogRegistrationDTO dto) {
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(service.registerGuild(dto))
-                .build();
+    public Response registerGuild(@Valid GuildDTO dto) {
+        service.saveGuild(dto);
+        return Response.status(Response.Status.CREATED).build();
     }
 
     @GET
@@ -43,16 +41,17 @@ public class MessageLogRegistrationController {
     @RunOnVirtualThread
     public Response getGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
         return Response
-                .ok(service.viewRegisteredGuild(guildId))
+                .ok(service.viewGuild(guildId))
                 .build();
     }
 
-    @PUT
+    @PATCH
     @Blocking
     @RunOnVirtualThread
-    public Response updateGuild(@Valid MessageLogRegistrationDTO dto) {
+    public Response updateGuild(@Valid GuildDTO dto) {
+        service.updateGuild(dto.getGuildId(), dto);
         return Response
-                .ok(service.updateRegisteredGuild(dto.getGuildId(), dto))
+                .noContent()
                 .build();
     }
 
@@ -61,7 +60,7 @@ public class MessageLogRegistrationController {
     @Blocking
     @RunOnVirtualThread
     public Response deleteGuild(@PathParam("guildId") @Positive @NotNull Long guildId) {
-        service.deleteRegisteredGuild(guildId);
+        service.deleteGuild(guildId);
         return Response.noContent().build();
     }
 

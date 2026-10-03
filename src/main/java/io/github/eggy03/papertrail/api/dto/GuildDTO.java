@@ -9,14 +9,18 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageLogRegistrationDTO {
+public class GuildDTO {
 
     @NotNull(message = "GuildID cannot be null")
     @Positive(message = "GuildID must be positive")
     private Long guildId;
 
-    @NotNull(message = "ChannelID cannot be null")
-    @Positive(message = "ChannelID must be positive")
-    private Long channelId;
+    @Positive(message = "Guild Event ChannelID must be positive")
+    private Long guildEventChannelId;
 
+    @Positive(message = "Member Event ChannelID must be positive")
+    private Long memberEventChannelId;
+
+    @Positive(message = "Message Event ChannelID must be positive")
+    private Long messageEventChannelId;
 }

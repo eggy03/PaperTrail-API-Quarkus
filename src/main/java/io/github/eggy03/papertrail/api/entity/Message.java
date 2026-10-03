@@ -15,22 +15,26 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 
 @Entity
-@Getter
-@Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "message_log_content_table")
-public class MessageLogContent {
+@Table(name = "message_table")
+public class Message {
 
     @Id
     @Column(name = "message_id")
+    @Getter
+    @Setter
     private Long messageId;
 
     @Column(name = "message_content", length = 4000, nullable = false)
+    @Getter
+    @Setter
     private String messageContent;
 
     @Column(name = "author_id", nullable = false)
+    @Getter
+    @Setter
     private Long authorId;
 
     @CreationTimestamp
