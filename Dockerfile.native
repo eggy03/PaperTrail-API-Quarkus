@@ -19,7 +19,7 @@ COPY src ./src
 RUN ./mvnw -B -e clean package -DskipTests -Dnative
 
 # ---------- Stage 2: Minimal Runtime ----------
-FROM registry.access.redhat.com/ubi9/ubi-minimal:9.7
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.8
 RUN useradd -r -m papertrail
 WORKDIR /app
 
